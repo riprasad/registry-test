@@ -75,8 +75,8 @@ jobs:
         with:
           tag_name: ${{steps.metadata.outputs.release-version}}       
           release_name: ${{steps.metadata.outputs.release-version}}
-  #    - name: Generate Release Notes
-  #      run: gren release --token=${{ secrets.GITHUB_TOKEN }} --override --prefix=v
+      - name: Generate Release Notes
+        run: gren release --token=${{ secrets.GITHUB_TOKEN }} --override --prefix=v
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
       - name: Build the tagged Docker image
