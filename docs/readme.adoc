@@ -1,0 +1,51 @@
+= Explanation of the `docs` directory structure
+
+The Apicurio Registry `docs` directory is organized for delivering flexible content, which is a framework for putting together exactly the content you need and making it easier to reuse the same content in multiple places. 
+
+Apicurio Registry user content is organized into the following documents in the `apicurio-registry/docs` directory
+
+[options="header"]
+[cols="1,2,3"]
+|===
+|Document
+|master.adoc location
+|Content location
+
+|_Getting Started with Apicurio Registry_
+|`getting-started`
+a|* `assemblies/getting-started`  
+  * `modules/getting-started`  
+  * `images/getting-started`
+|_Apicurio Registry REST API documentation_
+| n/a
+a|* `getting-started/files`   
+
+|===
+
+
+== Asciidoc user guides
+For each Asciidoc-based guide, the `master.adoc` file includes the relevant assemblies and modules: 
+
+* Assemblies are files that introduce a subject and 
+include modules, which provide the content.
+* Modules provide content and do not include other files. 
+There are three kinds of modules: 
+** Concept
+** Procedure
+** Reference
+
+The Apicurio Registry `docs` directory contains the following directories: 
+
+* `assemblies` contains folder for each category of information. These folders contain assembly files:  
+** `getting-started` 
+
+
+* `modules` contains a folder for each category of information. These folders contain concept, procedure, and reference modules:
+** `getting-started`
+
+
+* `images` contains a folder for each category of information. These folders contain image files: 
+** `getting-started`
+
+== REST API documentation
+The Apicurio REST API documentation is generated dynamically from the Apicurio Registry OpenAPI v3.0 Swaggger file using link:https://github.com/Redocly/redoc[ReDoc]. 

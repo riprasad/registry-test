@@ -1,0 +1,13 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+
+ENV APP_URL=app/target/apicurio-registry-app-*-runner
+
+WORKDIR /work/
+
+ADD ${APP_URL} /work/application
+
+RUN chmod 775 /work
+
+EXPOSE 8080
+
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
