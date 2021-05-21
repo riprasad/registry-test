@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package io.apicurio.registry.rules.compatibility;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
+import io.apicurio.registry.protobuf.ProtobufFile;
+import io.apicurio.registry.rules.compatibility.protobuf.ProtobufCompatibilityCheckerLibrary;
 
 /**
  * @author Ales Justin
@@ -26,41 +29,47 @@ import static java.util.Objects.requireNonNull;
 public class ProtobufCompatibilityChecker implements CompatibilityChecker {
 
     /**
-     * @see io.apicurio.registry.rules.compatibility.CompatibilityChecker#isCompatibleWith(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
+     * @see io.apicurio.registry.rules.compatibility.CompatibilityChecker#testCompatibility(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
      */
     @Override
-    public boolean isCompatibleWith(CompatibilityLevel compatibilityLevel, List<String> existingSchemas, String proposedSchema) {
+    public CompatibilityExecutionResult testCompatibility(CompatibilityLevel compatibilityLevel, List<String> existingSchemas, String proposedSchema) {
         requireNonNull(compatibilityLevel, "compatibilityLevel MUST NOT be null");
         requireNonNull(existingSchemas, "existingSchemas MUST NOT be null");
         requireNonNull(proposedSchema, "proposedSchema MUST NOT be null");
 
         if (existingSchemas.isEmpty()) {
-            return true;
+            return CompatibilityExecutionResult.compatible();
         }
         switch (compatibilityLevel) {
             case BACKWARD: {
                 ProtobufFile fileBefore = new ProtobufFile(existingSchemas.get(existingSchemas.size() - 1));
                 ProtobufFile fileAfter = new ProtobufFile(proposedSchema);
-                ProtobufCompatibilityCheckerImpl checker = new ProtobufCompatibilityCheckerImpl(fileBefore, fileAfter);
-                return checker.validate();
+                ProtobufCompatibilityCheckerLibrary checker = new ProtobufCompatibilityCheckerLibrary(fileBefore, fileAfter);
+                if (checker.validate()) {
+                    return CompatibilityExecutionResult.compatible();
+                } else {
+                    return CompatibilityExecutionResult.incompatible("The new version of the protobuf artifact is not backward compatible.");
+                }
             }
             case BACKWARD_TRANSITIVE:
                 ProtobufFile fileAfter = new ProtobufFile(proposedSchema);
                 for (String existing : existingSchemas) {
                     ProtobufFile fileBefore = new ProtobufFile(existing);
-                    ProtobufCompatibilityCheckerImpl checker = new ProtobufCompatibilityCheckerImpl(fileBefore, fileAfter);
-                    if (!checker.validate()) {
-                        return false;
+                    ProtobufCompatibilityCheckerLibrary checker = new ProtobufCompatibilityCheckerLibrary(fileBefore, fileAfter);
+                    if (checker.validate()) {
+                        return CompatibilityExecutionResult.compatible();
+                    } else {
+                        return CompatibilityExecutionResult.incompatible("The new version of the protobuf artifact is not backward compatible.");
                     }
                 }
-                return true;
+                return CompatibilityExecutionResult.compatible();
             case FORWARD:
             case FORWARD_TRANSITIVE:
             case FULL:
             case FULL_TRANSITIVE:
                 throw new IllegalStateException("Compatibility level " + compatibilityLevel + " not supported for Protobuf schemas");
             default:
-                return true;
+                return CompatibilityExecutionResult.compatible();
         }
     }
 }

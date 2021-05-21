@@ -27,6 +27,8 @@ import {ArtifactsPageToolbar} from "./components/toolbar";
 import {ArtifactsPageEmptyState} from "./components/empty";
 import {UploadArtifactForm} from "./components/uploadForm";
 import {SearchedArtifact} from "@apicurio/registry-models";
+import {InvalidContentModal} from "../../components/modals";
+import {If} from "../../components/common/if";
 
 
 /**
@@ -44,9 +46,11 @@ export interface ArtifactsPageState extends PageState {
     criteria: GetArtifactsCriteria;
     isUploadModalOpen: boolean;
     isUploadFormValid: boolean;
+    isInvalidContentModalOpen: boolean;
     paging: Paging;
     results: ArtifactsSearchResults | null;
     uploadFormData: CreateArtifactData | null;
+    invalidContentError: any | null;
 }
 
 /**
@@ -64,13 +68,15 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
                 <PageSection className="ps_artifacts-header" variant={PageSectionVariants.light}>
                     <ArtifactsPageHeader onUploadArtifact={this.onUploadArtifact}/>
                 </PageSection>
-                <PageSection variant={PageSectionVariants.light} noPadding={true}>
-                    <ArtifactsPageToolbar artifacts={this.results()}
-                                          paging={this.state.paging}
-                                          onPerPageSelect={this.onPerPageSelect}
-                                          onSetPage={this.onSetPage}
-                                          onChange={this.onFilterChange}/>
-                </PageSection>
+                <If condition={this.showToolbar}>
+                    <PageSection variant={PageSectionVariants.light} noPadding={true}>
+                        <ArtifactsPageToolbar artifacts={this.results()}
+                                              paging={this.state.paging}
+                                              onPerPageSelect={this.onPerPageSelect}
+                                              onSetPage={this.onSetPage}
+                                              onChange={this.onFilterChange}/>
+                    </PageSection>
+                </If>
                 <PageSection variant={PageSectionVariants.default} isFilled={true}>
                     {
                         this.isLoading() ?
@@ -82,7 +88,7 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
                             <ArtifactsPageEmptyState onUploadArtifact={this.onUploadArtifact} isFiltered={this.isFiltered()}/>
                         :
                             <React.Fragment>
-                                <ArtifactList artifacts={this.artifacts()}/>
+                                <ArtifactList artifacts={this.artifacts()} onGroupClick={this.onGroupClick} />
                             </React.Fragment>
                     }
                 </PageSection>
@@ -93,12 +99,15 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
                     onClose={this.onUploadModalClose}
                     className="upload-artifact-modal pf-m-redhat-font"
                     actions={[
-                        <Button key="upload" variant="primary" onClick={this.doUploadArtifact} isDisabled={!this.state.isUploadFormValid}>Upload</Button>,
-                        <Button key="cancel" variant="link" onClick={this.onUploadModalClose}>Cancel</Button>
+                        <Button key="upload" variant="primary" data-testid="modal-btn-upload" onClick={this.doUploadArtifact} isDisabled={!this.state.isUploadFormValid}>Upload</Button>,
+                        <Button key="cancel" variant="link" data-testid="modal-btn-cancel" onClick={this.onUploadModalClose}>Cancel</Button>
                     ]}
                 >
                     <UploadArtifactForm onChange={this.onUploadFormChange} onValid={this.onUploadFormValid} />
                 </Modal>
+                <InvalidContentModal error={this.state.invalidContentError}
+                                     isOpen={this.state.isInvalidContentModalOpen}
+                                     onClose={this.closeInvalidContentModal} />
             </React.Fragment>
         );
     }
@@ -110,6 +119,8 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
                 type: "everything",
                 value: "",
             },
+            invalidContentError: null,
+            isInvalidContentModalOpen: false,
             isLoading: true,
             isUploadFormValid: false,
             isUploadModalOpen: false,
@@ -122,8 +133,9 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
         };
     }
 
-    protected loadPageData(): void {
-        this.search();
+    // @ts-ignore
+    protected createLoaders(): Promise {
+        return this.search();
     }
 
     private onUploadArtifact = (): void => {
@@ -144,12 +156,21 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
     private doUploadArtifact = (): void => {
         this.onUploadModalClose();
         if (this.state.uploadFormData !== null) {
-            Services.getArtifactsService().createArtifact(this.state.uploadFormData).then(metaData => {
-                const artifactLocation: string = `/artifacts/${ encodeURIComponent(metaData.id) }`;
+            // If no groupId is provided, set it to the "default" group
+            if (!this.state.uploadFormData.groupId) {
+                this.state.uploadFormData.groupId = "default";
+            }
+            Services.getGroupsService().createArtifact(this.state.uploadFormData).then(metaData => {
+                const groupId: string = metaData.groupId ? metaData.groupId : "default";
+                const artifactLocation: string = `/artifacts/${ encodeURIComponent(groupId) }/${ encodeURIComponent(metaData.id) }`;
                 Services.getLoggerService().info("Artifact successfully uploaded.  Redirecting to details: ", artifactLocation);
                 this.navigateTo(artifactLocation)();
             }).catch( error => {
-                this.handleServerError(error, "Error uploading artifact.");
+                if (error && error.error_code === 400) {
+                    this.handleInvalidContentError(error);
+                } else {
+                    this.handleServerError(error, "Error uploading artifact.");
+                }
             });
         }
     };
@@ -184,12 +205,13 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
         return !!this.state.criteria.value;
     }
 
-    private search(): void {
-        Services.getArtifactsService().getArtifacts(this.state.criteria, this.state.paging).then(results => {
-            this.onArtifactsLoaded(results);
-        }).catch(error => {
-            this.handleServerError(error, "Error searching for artifacts.");
-        });
+    // @ts-ignore
+    private search(): Promise {
+        return Services.getGroupsService().getArtifacts(this.state.criteria, this.state.paging).then(results => {
+                this.onArtifactsLoaded(results);
+            }).catch(error => {
+                this.handleServerError(error, "Error searching for artifacts.");
+            });
     }
 
     private onSetPage = (event: any, newPage: number, perPage?: number): void => {
@@ -225,5 +247,26 @@ export class ArtifactsPage extends PageComponent<ArtifactsPageProps, ArtifactsPa
     private onUploadFormChange = (data: CreateArtifactData): void => {
         this.setSingleState("uploadFormData", data);
     };
+
+    private closeInvalidContentModal = (): void => {
+        this.setSingleState("isInvalidContentModalOpen", false);
+    };
+
+    private handleInvalidContentError(error: any): void {
+        Services.getLoggerService().info("INVALID CONTENT ERROR", error);
+        this.setMultiState({
+            invalidContentError: error,
+            isInvalidContentModalOpen: true
+        });
+    }
+
+    private onGroupClick = (groupId: string): void => {
+        // TODO filter by the group
+    };
+
+    private showToolbar = (): boolean => {
+        const hasCriteria: boolean = this.state.criteria && this.state.criteria.value != null && this.state.criteria.value != "";
+        return hasCriteria || this.results().count > 0;
+    }
 
 }

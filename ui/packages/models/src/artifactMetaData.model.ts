@@ -18,9 +18,11 @@
 
 export class ArtifactMetaData {
 
+    public groupId: string|null;
     public id: string;
     public name: string|null;
     public description: string|null;
+    public labels: string[]|null;
     public type: string;
     public version: number;
     public createdBy: string;
@@ -28,6 +30,7 @@ export class ArtifactMetaData {
     public modifiedBy: string;
     public modifiedOn: Date;
     public globalId: number;
+    public contentId: number|null;
     public state: string;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 JBoss Inc
+ * Copyright 2020 Red Hat Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import io.apicurio.registry.AbstractRegistryTestBase;
 import io.apicurio.registry.content.ContentHandle;
+import io.apicurio.registry.rules.RuleViolationException;
 
 /**
  * @author cfoskin@redhat.com
@@ -37,7 +38,7 @@ public class XmlContentValidatorTest extends AbstractRegistryTestBase {
     public void testInvalidSyntax() throws Exception {
         ContentHandle content = resourceToContentHandle("xml-invalid-syntax.xml");
         XsdContentValidator validator = new XsdContentValidator();
-        Assertions.assertThrows(InvalidContentException.class, () -> {
+        Assertions.assertThrows(RuleViolationException.class, () -> {
             validator.validate(ValidityLevel.SYNTAX_ONLY, content);
         });
     }

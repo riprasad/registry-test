@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,24 @@ public class IoUtil {
             throw new UncheckedIOException(e);
         } finally {
             close(stream);
+        }
+    }
+
+    /**
+     * Get byte array from stream.
+     *
+     * @param stream the stream
+     * @return stream as a byte array
+     */
+    public static byte[] toBytes(InputStream stream, boolean closeStream) {
+        try {
+            return toBaos(stream).toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            if (closeStream) {
+                close(stream);
+            }
         }
     }
 

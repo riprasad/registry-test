@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package io.apicurio.registry.rules.compatibility;
 
+import io.apicurio.registry.ccompat.rest.error.UnprocessableEntityException;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaParseException;
 import org.apache.avro.SchemaValidationException;
 import org.apache.avro.SchemaValidator;
 import org.apache.avro.SchemaValidatorBuilder;
@@ -34,10 +36,10 @@ import static java.util.Objects.requireNonNull;
 public class AvroCompatibilityChecker implements CompatibilityChecker {
 
     /**
-     * @see CompatibilityChecker#isCompatibleWith(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
+     * @see CompatibilityChecker#testCompatibility(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
      */
     @Override
-    public boolean isCompatibleWith(CompatibilityLevel compatibilityLevel, List<String> existingSchemaStrings, String proposedSchemaString) {
+    public CompatibilityExecutionResult testCompatibility(CompatibilityLevel compatibilityLevel, List<String> existingSchemaStrings, String proposedSchemaString) {
         requireNonNull(compatibilityLevel, "compatibilityLevel MUST NOT be null");
         requireNonNull(existingSchemaStrings, "existingSchemaStrings MUST NOT be null");
         requireNonNull(proposedSchemaString, "proposedSchemaString MUST NOT be null");
@@ -45,18 +47,19 @@ public class AvroCompatibilityChecker implements CompatibilityChecker {
         SchemaValidator schemaValidator = validatorFor(compatibilityLevel);
 
         if (schemaValidator == null) {
-            return true;
+            return CompatibilityExecutionResult.compatible();
         }
 
         List<Schema> existingSchemas = existingSchemaStrings.stream().map(s -> new Schema.Parser().parse(s)).collect(Collectors.toList());
         Collections.reverse(existingSchemas); // the most recent must come first, i.e. reverse-chronological.
-        Schema toValidate = new Schema.Parser().parse(proposedSchemaString);
-
         try {
+            Schema toValidate = new Schema.Parser().parse(proposedSchemaString);
             schemaValidator.validate(toValidate, existingSchemas);
-            return true;
+            return CompatibilityExecutionResult.compatible();
         } catch (SchemaValidationException e) {
-            return false;
+            return CompatibilityExecutionResult.incompatible(e);
+        } catch (SchemaParseException e) {
+            throw new UnprocessableEntityException(e.getMessage());
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package io.apicurio.registry.ccompat.rest;
 
 import io.apicurio.registry.ccompat.dto.ModeDto;
+import io.apicurio.registry.metrics.RestMetricsResponseFilteredNameBinding;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -30,16 +31,17 @@ import static io.apicurio.registry.ccompat.rest.ContentTypes.*;
 /**
  * Note:
  * <p/>
- * This <a href="https://docs.confluent.io/5.4.1/schema-registry/develop/api.html#free-up-storage-space-in-the-registry-for-new-schemas">API specification</a> is owned by Confluent.
+ * This <a href="https://docs.confluent.io/5.5.0/schema-registry/develop/api.html#free-up-artifactStore-space-in-the-registry-for-new-schemas">API specification</a> is owned by Confluent.
  *
  * We <b>DO NOT</b> support this endpoint. Fails with 404.
  *
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
-@Path("/ccompat/mode")
+@Path("/apis/ccompat/v6/mode")
+@RestMetricsResponseFilteredNameBinding
 @Consumes({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
-@Produces({COMPAT_SCHEMA_REGISTRY_V1})
+@Produces({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
 public interface ModeResource {
 
     // ----- Path: /mode -----

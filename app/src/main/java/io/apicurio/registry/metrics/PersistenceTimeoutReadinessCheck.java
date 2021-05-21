@@ -12,9 +12,9 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
 
 /**
- * Fail readiness check if the duration of processing a storage operation is too high.
+ * Fail readiness check if the duration of processing a artifactStore operation is too high.
  *
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
 @ApplicationScoped
 @Liveness
@@ -27,7 +27,7 @@ public class PersistenceTimeoutReadinessCheck extends AbstractErrorCounterHealth
      * Maximum number of timeouts as captured by this interceptor,
      * before the readiness check fails.
      */
-    @ConfigProperty(name = "registry.metrics.PersistenceTimeoutReadinessCheck.errorThreshold", defaultValue = "1")
+    @ConfigProperty(name = "registry.metrics.PersistenceTimeoutReadinessCheck.errorThreshold", defaultValue = "5")
     Integer configErrorThreshold;
 
     /**
@@ -48,7 +48,7 @@ public class PersistenceTimeoutReadinessCheck extends AbstractErrorCounterHealth
     /**
      * Set the operation duration in seconds, after which it's considered an error.
      */
-    @ConfigProperty(name = "registry.metrics.PersistenceTimeoutReadinessCheck.timeoutSec", defaultValue = "5")
+    @ConfigProperty(name = "registry.metrics.PersistenceTimeoutReadinessCheck.timeoutSec", defaultValue = "15")
     Integer configTimeoutSec;
 
     private Duration timeoutSec;

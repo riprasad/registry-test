@@ -16,15 +16,13 @@
 
 package io.apicurio.registry;
 
-import io.apicurio.registry.search.client.SearchClient;
-import io.apicurio.registry.types.Current;
-import io.apicurio.registry.utils.PropertiesUtil;
-import io.apicurio.registry.utils.RegistryProperties;
-
 import java.util.Properties;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
+
+import io.apicurio.registry.utils.PropertiesUtil;
 
 /**
  * Generic configuration.
@@ -36,15 +34,7 @@ public class AppConfiguration {
 
     @Produces
     public Properties properties(InjectionPoint ip) {
-        RegistryProperties kp = ip.getAnnotated().getAnnotation(RegistryProperties.class);
-        return PropertiesUtil.properties(kp);
-    }
-
-    @Produces
-    @ApplicationScoped
-    @Current
-    public SearchClient searchClient(@RegistryProperties("registry.search-index.") Properties properties) {
-        return SearchClient.create(properties);
+        return PropertiesUtil.properties(ip);
     }
 
 }

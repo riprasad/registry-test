@@ -20,3 +20,4 @@ export * from "./errorPage";
 export * from "./header";
 export * from "./ruleList";
 export * from "./baseComponent";
+export * from "./modals";

@@ -18,17 +18,18 @@
 import React from "react";
 import "./info.css";
 import {
-    ArtifactTypeIcon,
+    ArtifactTypeIcon, IfAuth,
     PureComponent,
     PureComponentProps,
     PureComponentState,
     RuleList
 } from "../../../../components";
-import {Badge, Button, Flex, FlexItem, Split, SplitItem} from "@patternfly/react-core";
+import {Badge, Button, EmptyStateBody, Flex, FlexItem, Split, SplitItem} from "@patternfly/react-core";
 import {ArtifactMetaData, Rule} from "@apicurio/registry-models";
 import {DownloadIcon, EditIcon} from "@patternfly/react-icons";
 import Moment from "react-moment";
 import {IfFeature} from "../../../../components/common/ifFeature";
+import {If} from "../../../../components/common/if";
 
 /**
  * Properties
@@ -70,17 +71,30 @@ export class InfoTabContent extends PureComponent<InfoTabContentProps, InfoTabCo
                             <SplitItem className="type"><ArtifactTypeIcon type={this.props.artifact.type} /></SplitItem>
                             <SplitItem className="title" isFilled={true}>{this.nameOrId()}</SplitItem>
                             <SplitItem className="actions">
-                                <IfFeature feature="readOnly" isNot={true}>
-                                    <Button id="edit-action"
-                                            title="Edit artifact meta-data"
-                                            onClick={this.props.onEditMetaData}
-                                            variant="plain"><EditIcon /></Button>
-                                </IfFeature>
+                                <IfAuth isDeveloper={true}>
+                                    <IfFeature feature="readOnly" isNot={true}>
+                                        <Button id="edit-action"
+                                                data-testid="artifact-btn-edit"
+                                                title="Edit artifact meta-data"
+                                                onClick={this.props.onEditMetaData}
+                                                variant="plain"><EditIcon /></Button>
+                                    </IfFeature>
+                                </IfAuth>
                             </SplitItem>
                         </Split>
                     </div>
-                    <div className="description">{this.props.artifact.description}</div>
+                    <div className="description">{this.description()}</div>
                     <div className="metaData">
+                        <If condition={this.isArtifactInGroup}>
+                            <div className="metaDataItem">
+                                <span className="label">Group</span>
+                                <span className="value">{this.props.artifact.groupId}</span>
+                            </div>
+                        </If>
+                        <div className="metaDataItem">
+                            <span className="label">ID</span>
+                            <span className="value">{this.props.artifact.id}</span>
+                        </div>
                         <div className="metaDataItem">
                             <span className="label">Status</span>
                             <span className="value">{this.props.artifact.state}</span>
@@ -103,6 +117,7 @@ export class InfoTabContent extends PureComponent<InfoTabContentProps, InfoTabCo
                     </div>
                     <div className="actions">
                         <Button id="download-action"
+                                data-testid="artifact-btn-download"
                                 title="Download artifact content"
                                 onClick={this.props.onDownloadArtifact}
                                 variant="primary"><DownloadIcon /> Download</Button>
@@ -129,8 +144,17 @@ export class InfoTabContent extends PureComponent<InfoTabContentProps, InfoTabCo
     }
 
     private labels(): string[] {
-        // TODO implement labels!
-        return [];
+        return this.props.artifact.labels ? this.props.artifact.labels : [];
     }
 
+    private description(): string {
+        return this.props.artifact.description ?
+            this.props.artifact.description :
+            `An artifact of type ${this.props.artifact.type} with no description.`;
+    }
+
+    private isArtifactInGroup = (): boolean => {
+        const groupId: string|null = this.props.artifact.groupId;
+        return groupId != null && groupId != "default";
+    };
 }

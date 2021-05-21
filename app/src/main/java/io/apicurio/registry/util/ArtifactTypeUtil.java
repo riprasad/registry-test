@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import io.apicurio.registry.common.proto.Serde;
 import io.apicurio.registry.content.ContentHandle;
-import io.apicurio.registry.rules.compatibility.ProtobufFile;
+import io.apicurio.registry.protobuf.ProtobufFile;
+import io.apicurio.registry.storage.InvalidArtifactTypeException;
 import io.apicurio.registry.types.ArtifactType;
 
 /**
@@ -55,7 +55,7 @@ public final class ArtifactTypeUtil {
      * @param content
      * @param contentType
      */
-    public static ArtifactType discoverType(ContentHandle content, String contentType) {
+    public static ArtifactType discoverType(ContentHandle content, String contentType) throws InvalidArtifactTypeException {
         boolean triedProto = false;
 
         // If the content-type suggests it's protobuf, try that first.
@@ -86,7 +86,11 @@ public final class ArtifactTypeUtil {
             // Kafka Connect??
             // TODO detect Kafka Connect schemas
             // Avro
-            return ArtifactType.AVRO;
+            if (tree.has("type")) {
+                return ArtifactType.AVRO;
+            }
+            
+            throw new InvalidArtifactTypeException("Failed to discover artifact type from JSON content.");
         } catch (Exception e) {
             // Apparently it's not JSON.
         }
@@ -125,8 +129,7 @@ public final class ArtifactTypeUtil {
             // It's not XML.
         }
 
-        // Default to Avro
-        return ArtifactType.AVRO;
+        throw new InvalidArtifactTypeException("Failed to discover artifact type from content.");
     }
 
     private static ArtifactType tryProto(ContentHandle content) {
@@ -135,12 +138,6 @@ public final class ArtifactTypeUtil {
             return ArtifactType.PROTOBUF;
         } catch (Exception e) {
             // Doesn't seem to be protobuf
-        }
-        try {
-            Serde.Schema.parseFrom(content.bytes());
-            return ArtifactType.PROTOBUF_FD;
-        } catch (Exception e) {
-            // Doesn't seem to be protobuf_fd
         }
         return null;
     }

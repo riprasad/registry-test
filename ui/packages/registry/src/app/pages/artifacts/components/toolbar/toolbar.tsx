@@ -76,20 +76,23 @@ export class ArtifactsPageToolbar extends PureComponent<ArtifactsPageToolbarProp
                                 <Dropdown
                                     onSelect={this.onFilterSelect}
                                     toggle={
-                                        <DropdownToggle onToggle={this.onFilterToggle}>{this.filterValueDisplay()}</DropdownToggle>
+                                        <DropdownToggle data-testid="toolbar-filter-toggle" onToggle={this.onFilterToggle}>{this.filterValueDisplay()}</DropdownToggle>
                                     }
                                     isOpen={this.state.filterIsExpanded}
                                     dropdownItems={[
-                                        <DropdownItem key="everything" id="everything" component="button">Everything</DropdownItem>,
-                                        <DropdownItem key="name" id="name" component="button">Name</DropdownItem>,
-                                        <DropdownItem key="description" id="description" component="button">Description</DropdownItem>,
+                                        <DropdownItem key="name" id="name" data-testid="toolbar-filter-name" component="button">Name</DropdownItem>,
+                                        <DropdownItem key="group" id="group" data-testid="toolbar-filter-group" component="button">Group</DropdownItem>,
+                                        <DropdownItem key="description" id="description" data-testid="toolbar-filter-description" component="button">Description</DropdownItem>,
+                                        <DropdownItem key="labels" id="labels" data-testid="toolbar-filter-labels" component="button">Labels</DropdownItem>,
                                     ]}
                                 />
                                 <TextInput name="filterValue" id="filterValue" type="search"
                                            onChange={this.onFilterValueChange}
+                                           data-testid="toolbar-filter-value"
                                            aria-label="search input example"/>
                                 <Button variant={ButtonVariant.control}
                                         onClick={this.onFilterSubmit}
+                                        data-testid="toolbar-btn-filter-search"
                                         aria-label="search button for search input">
                                     <SearchIcon/>
                                 </Button>
@@ -97,7 +100,7 @@ export class ArtifactsPageToolbar extends PureComponent<ArtifactsPageToolbarProp
                         </Form>
                     </DataToolbarItem>
                     <DataToolbarItem className="sort-icon-item">
-                        <Button variant="plain" aria-label="edit" onClick={this.onToggleAscending}>
+                        <Button variant="plain" aria-label="edit" data-testid="toolbar-btn-sort" onClick={this.onToggleAscending}>
                             {
                                 this.state.ascending ? <SortAlphaDownIcon/> : <SortAlphaDownAltIcon/>
                             }
@@ -106,7 +109,7 @@ export class ArtifactsPageToolbar extends PureComponent<ArtifactsPageToolbarProp
                     <DataToolbarItem className="artifact-paging-item">
                         <Pagination
                             variant="bottom"
-                            dropDirection="up"
+                            dropDirection="down"
                             itemCount={this.totalArtifactsCount()}
                             perPage={this.props.paging.pageSize}
                             page={this.props.paging.page}
@@ -125,7 +128,7 @@ export class ArtifactsPageToolbar extends PureComponent<ArtifactsPageToolbarProp
         return {
             ascending: true,
             filterIsExpanded: false,
-            filterSelection: "everything",
+            filterSelection: "name",
             filterValue: ""
         };
     }
@@ -187,10 +190,14 @@ export class ArtifactsPageToolbar extends PureComponent<ArtifactsPageToolbarProp
         switch (this.state.filterSelection) {
             case "name":
                 return "Name";
+            case "group":
+                return "Group";
             case "description":
                 return "Description";
+            case "labels":
+                return "Labels";
             default:
-                return "Everything";
+                return "Name";
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package io.apicurio.registry.ccompat.rest.impl;
 
-import io.apicurio.registry.ccompat.dto.SchemaContent;
 import io.apicurio.registry.ccompat.dto.Schema;
+import io.apicurio.registry.ccompat.dto.SchemaInfo;
 import io.apicurio.registry.ccompat.dto.SchemaId;
 import io.apicurio.registry.ccompat.rest.SubjectVersionsResource;
 import io.apicurio.registry.ccompat.store.FacadeConverter;
+import io.apicurio.registry.logging.Logged;
 import io.apicurio.registry.metrics.ResponseErrorLivenessCheck;
 import io.apicurio.registry.metrics.ResponseTimeoutReadinessCheck;
 import io.apicurio.registry.metrics.RestMetricsApply;
@@ -38,13 +39,14 @@ import static org.eclipse.microprofile.metrics.MetricUnits.MILLISECONDS;
 
 /**
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
 @Interceptors({ResponseErrorLivenessCheck.class, ResponseTimeoutReadinessCheck.class})
 @RestMetricsApply
 @Counted(name = REST_REQUEST_COUNT, description = REST_REQUEST_COUNT_DESC, tags = {"group=" + REST_GROUP_TAG, "metric=" + REST_REQUEST_COUNT})
 @ConcurrentGauge(name = REST_CONCURRENT_REQUEST_COUNT, description = REST_CONCURRENT_REQUEST_COUNT_DESC, tags = {"group=" + REST_GROUP_TAG, "metric=" + REST_CONCURRENT_REQUEST_COUNT})
 @Timed(name = REST_REQUEST_RESPONSE_TIME, description = REST_REQUEST_RESPONSE_TIME_DESC, tags = {"group=" + REST_GROUP_TAG, "metric=" + REST_REQUEST_RESPONSE_TIME}, unit = MILLISECONDS)
+@Logged
 public class SubjectVersionsResourceImpl extends AbstractResource implements SubjectVersionsResource {
 
 
@@ -54,12 +56,8 @@ public class SubjectVersionsResourceImpl extends AbstractResource implements Sub
     }
 
     @Override
-    public void register(
-            AsyncResponse response,
-            String subject,
-            SchemaContent request) throws Exception {
-
-        facade.createSchema(subject, request.getSchema())
+    public void register(String subject, SchemaInfo request, AsyncResponse response) throws Exception {
+        facade.createSchema(subject, request.getSchema(), request.getSchemaType())
                 .thenApply(FacadeConverter::convertUnsigned)
                 .whenComplete((id, t) -> {
                     if (t != null) {
@@ -96,5 +94,10 @@ public class SubjectVersionsResourceImpl extends AbstractResource implements Sub
             String version) throws Exception {
 
         return facade.getSchema(subject, version).getSchema();
+    }
+
+    @Override
+    public List<Integer> getSchemasReferencedBy(String subject, Integer version) throws Exception {
+        return facade.getVersions(subject);
     }
 }

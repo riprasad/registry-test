@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
  * Immutable.
  *
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
 @JsonAutoDetect(isGetterVisibility = NONE)
 @NoArgsConstructor // required for Jackson

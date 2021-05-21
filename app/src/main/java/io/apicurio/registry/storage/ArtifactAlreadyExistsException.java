@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,17 @@ public class ArtifactAlreadyExistsException extends AlreadyExistsException {
 
     private static final long serialVersionUID = -1015140450163088675L;
     
+    private final String groupId;
     private final String artifactId;
 
     /**
      * Constructor.
+     * @param groupId
+     * @param artifactId
      */
-    public ArtifactAlreadyExistsException(String artifactId) {
+    public ArtifactAlreadyExistsException(String groupId, String artifactId) {
         this.artifactId = artifactId;
+        this.groupId = groupId;
     }
 
     /**
@@ -40,11 +44,18 @@ public class ArtifactAlreadyExistsException extends AlreadyExistsException {
     }
     
     /**
+     * @return the groupId
+     */
+    public String getGroupId() {
+        return groupId;
+    }
+    
+    /**
      * @see java.lang.Throwable#getMessage()
      */
     @Override
     public String getMessage() {
-        return "An artifact with ID '" + this.artifactId + "' already exists.";
+        return "An artifact with ID '" + this.artifactId + "' in group '" + groupId + "' already exists.";
     }
 
 }

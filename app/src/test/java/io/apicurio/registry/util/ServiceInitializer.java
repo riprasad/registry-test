@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 
 /**
- * Setup storage type's (JPA, Kafka, ...) services.
- * e.g. database (JPA) or (ZK and Kafka)
+ * Setup artifactStore type's (SQL, Kafka, ...) services.
+ * e.g. database (SQL) or (ZK and Kafka)
  * <p>
  * Or simply check if service is already running.
  *

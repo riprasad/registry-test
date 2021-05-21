@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.apicurio.registry.ccompat.rest;
 
 import io.apicurio.registry.ccompat.dto.CompatibilityCheckResponse;
 import io.apicurio.registry.ccompat.dto.SchemaContent;
+import io.apicurio.registry.metrics.RestMetricsResponseFilteredNameBinding;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -31,16 +32,17 @@ import static io.apicurio.registry.ccompat.rest.ContentTypes.*;
 /**
  * Note:
  * <p/>
- * This <a href="https://docs.confluent.io/5.4.1/schema-registry/develop/api.html#id1">API specification</a> is owned by Confluent.
+ * This <a href="https://docs.confluent.io/5.5.0/schema-registry/develop/api.html#id1">API specification</a> is owned by Confluent.
  *
  * The compatibility resource allows the user to test schemas for compatibility against specific versions of a subject’s schema.
  *
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
-@Path("/ccompat/compatibility")
+@Path("/apis/ccompat/v6/compatibility")
+@RestMetricsResponseFilteredNameBinding
 @Consumes({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
-@Produces({COMPAT_SCHEMA_REGISTRY_V1})
+@Produces({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
 public interface CompatibilityResource {
 
     // ----- Path: /compatibility/subjects/{subject}/versions/{version} -----
@@ -62,7 +64,7 @@ public interface CompatibilityResource {
      *         Error code 40401 – Subject not found
      *         Error code 40402 – Version not found
      *     422 Unprocessable Entity
-     *         Error code 42201 – Invalid Avro schema
+     *         Error code 42201 – Invalid schema
      *         Error code 42202 – Invalid version
      *     500 Internal Server Error
      *         Error code 50001 – Error in the backend data store

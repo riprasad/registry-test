@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.apicurio.registry;
 
 import io.apicurio.registry.content.ContentHandle;
 import io.apicurio.registry.utils.tests.TestUtils;
+
 import org.junit.jupiter.api.Assertions;
 
 import java.io.BufferedReader;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractRegistryTestBase {
 
+
     protected String generateArtifactId() {
         return TestUtils.generateArtifactId();
     }
@@ -49,6 +51,16 @@ public abstract class AbstractRegistryTestBase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Loads a resource as an input stream.
+     * @param resourceName the resource name
+     */
+    protected final InputStream resourceToInputStream(String resourceName) {
+        InputStream stream = getClass().getResourceAsStream(resourceName);
+        Assertions.assertNotNull(stream, "Resource not found: " + resourceName);
+        return stream;
     }
 
     protected final ContentHandle resourceToContentHandle(String resourceName) {

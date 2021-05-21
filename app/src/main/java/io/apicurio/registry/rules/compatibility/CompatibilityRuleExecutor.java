@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,26 @@
 
 package io.apicurio.registry.rules.compatibility;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import io.apicurio.registry.content.ContentHandle;
+import io.apicurio.registry.logging.Logged;
 import io.apicurio.registry.rules.RuleContext;
 import io.apicurio.registry.rules.RuleExecutor;
+import io.apicurio.registry.rules.RuleViolation;
 import io.apicurio.registry.rules.RuleViolationException;
 import io.apicurio.registry.types.RuleType;
 import io.apicurio.registry.types.provider.ArtifactTypeUtilProvider;
 import io.apicurio.registry.types.provider.ArtifactTypeUtilProviderFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * Rule executor for the "Compatibility" rule.  The Compatibility Rule is responsible
@@ -39,6 +45,7 @@ import static java.util.Collections.singletonList;
  * @author eric.wittmann@gmail.com
  */
 @ApplicationScoped
+@Logged
 public class CompatibilityRuleExecutor implements RuleExecutor {
 
     @Inject
@@ -54,14 +61,33 @@ public class CompatibilityRuleExecutor implements RuleExecutor {
         CompatibilityChecker checker = provider.getCompatibilityChecker();
         List<ContentHandle> existingArtifacts = context.getCurrentContent() != null
             ? singletonList(context.getCurrentContent()) : emptyList();
-        if (!checker.isCompatibleWith(
-            level,
-            existingArtifacts,
-            context.getUpdatedContent())
-        ) {
-            throw new RuleViolationException(String.format("Incompatible artifact: %s [%s]",
-                context.getArtifactId(), context.getArtifactType()),
-                RuleType.COMPATIBILITY, context.getConfiguration());
+        CompatibilityExecutionResult compatibilityExecutionResult = checker.testCompatibility(
+             level,
+             existingArtifacts,
+             context.getUpdatedContent());
+        if (!compatibilityExecutionResult.isCompatible()) {
+            throw new RuleViolationException(String.format("Incompatible artifact: %s [%s], num of incompatible diffs: {%s}",
+                 context.getArtifactId(), context.getArtifactType(),
+                 compatibilityExecutionResult.getIncompatibleDifferences().size()),
+                 RuleType.COMPATIBILITY, context.getConfiguration(),
+                 transformCompatibilityDiffs(compatibilityExecutionResult.getIncompatibleDifferences()));
+        }
+    }
+
+    /**
+     * Convert the set of compatibility differences into a collection of rule violation causes
+     * for return to the user.
+     * @param differences
+     */
+    private Set<RuleViolation> transformCompatibilityDiffs(Set<CompatibilityDifference> differences) {
+        if (!differences.isEmpty()) {
+            Set<RuleViolation> res = new HashSet<>();
+            for (CompatibilityDifference diff : differences) {
+                res.add(diff.asRuleViolation());
+            }
+            return res;
+        } else {
+            return Collections.emptySet();
         }
     }
 

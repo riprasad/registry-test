@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package io.apicurio.registry.ccompat.store;
 
 import io.apicurio.registry.ccompat.dto.SchemaContent;
 import io.apicurio.registry.ccompat.dto.Schema;
-import io.apicurio.registry.storage.StoredArtifact;
+import io.apicurio.registry.ccompat.dto.SubjectVersion;
+import io.apicurio.registry.content.ContentHandle;
+import io.apicurio.registry.storage.dto.StoredArtifactDto;
 
 public class FacadeConverter {
 
@@ -29,16 +31,20 @@ public class FacadeConverter {
         return (int) value;
     }
 
-    public static Schema convert(String subject, StoredArtifact storedArtifact) {
+    public static Schema convert(String subject, StoredArtifactDto storedArtifact) {
         return new Schema(
-                convertUnsigned(storedArtifact.getGlobalId()),
+                convertUnsigned(storedArtifact.getContentId()),
                 subject,
-                convertUnsigned(storedArtifact.getVersion().intValue()),
+                convertUnsigned(storedArtifact.getVersionId()),
                 storedArtifact.getContent().content()
         );
     }
 
-    public static SchemaContent convert(StoredArtifact artifactVersion) {
-        return new SchemaContent(artifactVersion.getContent().content());
+    public static SchemaContent convert(ContentHandle content) {
+        return new SchemaContent(content.content());
+    }
+
+    public static SubjectVersion convert(String artifactId, Number version) {
+        return new SubjectVersion(artifactId, version.longValue());
     }
 }

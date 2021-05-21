@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package io.apicurio.registry.rules.validity;
 
-import io.apicurio.registry.content.ContentHandle;
-import io.apicurio.registry.rules.compatibility.ProtobufFile;
-
 import javax.enterprise.context.ApplicationScoped;
+
+import io.apicurio.registry.content.ContentHandle;
+import io.apicurio.registry.protobuf.ProtobufFile;
+import io.apicurio.registry.rules.RuleViolationException;
+import io.apicurio.registry.types.RuleType;
 
 /**
  * A content validator implementation for the Protobuf content type.
@@ -27,23 +29,23 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class ProtobufContentValidator implements ContentValidator {
-    
+
     /**
      * Constructor.
      */
     public ProtobufContentValidator() {
     }
-    
+
     /**
      * @see io.apicurio.registry.rules.validity.ContentValidator#validate(io.apicurio.registry.rules.validity.ValidityLevel, ContentHandle)
      */
     @Override
-    public void validate(ValidityLevel level, ContentHandle artifactContent) throws InvalidContentException {
+    public void validate(ValidityLevel level, ContentHandle artifactContent) throws RuleViolationException {
         if (level == ValidityLevel.SYNTAX_ONLY || level == ValidityLevel.FULL) {
             try {
                 ProtobufFile.toProtoFileElement(artifactContent.content());
             } catch (Exception e) {
-                throw new InvalidContentException("Syntax violation for Protobuf artifact.", e);
+                throw new RuleViolationException("Syntax violation for Protobuf artifact.", RuleType.VALIDITY, level.name(), e);
             }
         }
     }

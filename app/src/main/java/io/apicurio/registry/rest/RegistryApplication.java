@@ -16,13 +16,11 @@
 
 package io.apicurio.registry.rest;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 /**
  * @author eric.wittmann@gmail.com
  */
-@ApplicationPath("/api")
 public class RegistryApplication extends Application {
 
 }

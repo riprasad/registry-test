@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ public class InvalidArtifactStateException extends StorageException {
 
     private static final long serialVersionUID = 1L;
 
-    public InvalidArtifactStateException(String artifactId, Number version, ArtifactState state) {
-        super(String.format("Artifact %s [%s] not active: %s", artifactId, version, state));
+    public InvalidArtifactStateException(String groupId, String artifactId, String version, ArtifactState state) {
+        super(String.format("Artifact %s [%s] in group (%s) is not active: %s", artifactId, version, groupId, state));
     }
 
     public InvalidArtifactStateException(ArtifactState previousState, ArtifactState newState) {

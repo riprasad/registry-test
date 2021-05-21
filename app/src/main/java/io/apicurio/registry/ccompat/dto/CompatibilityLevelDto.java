@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package io.apicurio.registry.ccompat.dto;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.apicurio.registry.rules.compatibility.CompatibilityLevel;
 import lombok.AllArgsConstructor;
@@ -34,7 +33,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
  * Immutable.
  *
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
 @JsonAutoDetect(isGetterVisibility = NONE)
 @NoArgsConstructor // required for Jackson
@@ -48,8 +47,7 @@ public class CompatibilityLevelDto {
         return new CompatibilityLevelDto(Level.create(source));
     }
 
-    @JsonProperty("compatibility")
-    private Level compatibilityLevel;
+    private Level compatibility;
 
     public enum Level {
         BACKWARD("BACKWARD"),
@@ -75,6 +73,8 @@ public class CompatibilityLevelDto {
                         return Level.FULL;
                     case FULL_TRANSITIVE:
                         return Level.FULL_TRANSITIVE;
+                    case NONE:
+                        return Level.NONE;
                 }
                 return null;
             }).orElse(Level.NONE);

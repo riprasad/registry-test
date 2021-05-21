@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package io.apicurio.registry.ccompat.rest;
 
-import io.apicurio.registry.ccompat.dto.SchemaContent;
+import io.apicurio.registry.auth.Authorized;
+import io.apicurio.registry.auth.AuthorizedStyle;
 import io.apicurio.registry.ccompat.dto.Schema;
+import io.apicurio.registry.ccompat.dto.SchemaInfo;
+import io.apicurio.registry.metrics.RestMetricsResponseFilteredNameBinding;
 
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -36,16 +39,17 @@ import static io.apicurio.registry.ccompat.rest.ContentTypes.*;
 /**
  * Note:
  * <p/>
- * This <a href="https://docs.confluent.io/5.4.1/schema-registry/develop/api.html#subjects">API specification</a> is owned by Confluent.
+ * This <a href="https://docs.confluent.io/5.5.0/schema-registry/develop/api.html#subjects">API specification</a> is owned by Confluent.
  *
  *
  *
  * @author Ales Justin
- * @author Jakub Senko <jsenko@redhat.com>
+ * @author Jakub Senko 'jsenko@redhat.com'
  */
-@Path("/ccompat/subjects/{subject}/versions")
+@Path("/apis/ccompat/v6/subjects/{subject}/versions")
+@RestMetricsResponseFilteredNameBinding
 @Consumes({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
-@Produces({COMPAT_SCHEMA_REGISTRY_V1})
+@Produces({JSON, OCTET_STREAM, COMPAT_SCHEMA_REGISTRY_V1, COMPAT_SCHEMA_REGISTRY_STABLE_LATEST})
 public interface SubjectVersionsResource {
 
     // ----- Path: /subjects/{subject}/versions -----
@@ -100,23 +104,24 @@ public interface SubjectVersionsResource {
      * Request JSON Object:
      *
      *
-     *     schema – The Avro schema string
+     *     schema – The schema string
      *
      * Status Codes:
      *
-     *     409 Conflict – Incompatible Avro schema
+     *     409 Conflict – Incompatible schema
      *     422 Unprocessable Entity –
-     *         Error code 42201 – Invalid Avro schema
+     *         Error code 42201 – Invalid schema
      *     500 Internal Server Error –
      *         Error code 50001 – Error in the backend data store
      *         Error code 50002 – Operation timed out
      *         Error code 50003 – Error while forwarding the request to the primary
      */
     @POST
+    @Authorized(AuthorizedStyle.ArtifactOnly)
     void register(
-            @Suspended AsyncResponse response,
             @PathParam("subject") String subject,
-            @NotNull SchemaContent request) throws Exception;
+            @NotNull SchemaInfo request,
+            @Suspended AsyncResponse response) throws Exception;
 
 
     // ----- Path: /subjects/{subject}/versions/{version} -----
@@ -135,7 +140,7 @@ public interface SubjectVersionsResource {
      *     subject (string) – Name of the subject that this schema is registered under
      *     globalId (int) – Globally unique identifier of the schema
      *     version (int) – Version of the returned schema
-     *     schema (string) – The Avro schema string
+     *     schema (string) – The schema string
      *
      * Status Codes:
      *
@@ -184,6 +189,7 @@ public interface SubjectVersionsResource {
      */
     @DELETE
     @Path("/{version}")
+    @Authorized(AuthorizedStyle.ArtifactOnly)
     int deleteSchemaVersion(
             @PathParam("subject") String subject,
             @PathParam("version") String version) throws Exception;
@@ -193,7 +199,7 @@ public interface SubjectVersionsResource {
 
 
     /**
-     * Get the avro schema for the specified version of this subject. The unescaped schema only is returned.
+     * Get the schema for the specified version of this subject. The unescaped schema only is returned.
      * Parameters:
      *
      *     subject (string) – Name of the subject
@@ -202,7 +208,7 @@ public interface SubjectVersionsResource {
      * Response JSON Object:
      *
      *
-     *     schema (string) – The Avro schema string (unescaped)
+     *     schema (string) – The schema string (unescaped)
      *
      * Status Codes:
      *
@@ -219,6 +225,36 @@ public interface SubjectVersionsResource {
     String getSchemaOnly(
             @PathParam("subject") String subject,
             @PathParam("version") String version) throws Exception;
+
+    // ----- Path: /subjects/{subject}/versions/{version}/referencedby -----
+
+    /**
+     * Get a list of IDs of schemas that reference the schema with the given subject and version.
+     *
+     * Parameters:
+     *
+     *     subject (string) – the name of the subject
+     *     version (versionId) – Version of the schema to be returned.
+     *     Valid values for versionId are between [1,2^31-1] or the string “latest”.
+     *     “latest” returns the last registered schema under the specified subject.
+     *     Note that there may be a new latest schema that gets registered right after this request is served.
+     *
+     * Response JSON Array of Objects:
+     *
+     *      id (int) – Globally unique identifier of the schema
+     *
+     *
+     * Status Codes:
+     *
+     *     404 Not Found –
+     *         Error code 40401 – Subject not found
+     *     500 Internal Server Error –
+     *         Error code 50001 – Error in the backend datastore
+     */
+    @GET
+    @Path("/{version}/referencedby")
+    List<Integer> getSchemasReferencedBy(
+            @PathParam("subject") String subject, @PathParam("version") Integer version) throws Exception;
 
 
 }

@@ -18,6 +18,7 @@ import React from 'react';
 import "./uploadForm.css";
 import {PureComponent, PureComponentProps, PureComponentState} from "../../../../components";
 import {
+    Button,
     debounce,
     Dropdown,
     DropdownItem,
@@ -26,7 +27,8 @@ import {
     FileUpload,
     Form,
     FormGroup,
-    TextInput
+    TextInput,
+    FormHelperText
 } from "@patternfly/react-core";
 import {CaretDownIcon} from "@patternfly/react-icons";
 import {CreateArtifactData} from "@apicurio/registry-services";
@@ -58,12 +60,15 @@ export interface UploadArtifactFormProps extends PureComponentProps {
  */
 export interface UploadArtifactFormState extends PureComponentState {
     id: string;
+    group: string;
     type: string;
     typeIsExpanded: boolean;
     content: string;
     contentFilename: string;
     contentIsLoading: boolean;
-    valid: boolean;
+    formValid: boolean;
+    idValid: boolean;
+    groupValid: boolean;
     debouncedOnChange: ((data: CreateArtifactData) => void) | null;
 }
 
@@ -80,20 +85,45 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
         return (
             <Form>
                 <FormGroup
-                    label="ID"
+                    label="Group & ID"
                     fieldId="form-id"
-                    helperText="(Optional) Leave the artifact ID empty to let the server auto-generate one."
+                    helperText="(Optional) Group and Artifact ID are optional.  If Artifact ID is left blank, the server will generate one for you."
                 >
-                    <TextInput
-                        isRequired={true}
-                        type="text"
-                        id="form-id"
-                        name="form-id"
-                        aria-describedby="form-id-helper"
-                        value={this.state.id}
-                        placeholder="ID of the artifact"
-                        onChange={this.onIdChange}
-                    />
+                    <div className="group-and-id">
+                        <TextInput
+                            className="group"
+                            isRequired={false}
+                            type="text"
+                            id="form-group"
+                            data-testid="form-group"
+                            name="form-group"
+                            aria-describedby="form-group-helper"
+                            value={this.state.group}
+                            placeholder="Group"
+                            onChange={this.onGroupChange}
+                            validated={this.groupValidated()}
+                        />
+                        <span className="separator">/</span>
+                        <TextInput
+                            className="artifact-id"
+                            isRequired={false}
+                            type="text"
+                            id="form-id"
+                            data-testid="form-id"
+                            name="form-id"
+                            aria-describedby="form-id-helper"
+                            value={this.state.id}
+                            placeholder="ID of the artifact"
+                            onChange={this.onIdChange}
+                            validated={this.idValidated()}
+                        />
+                    </div>
+                    <FormHelperText
+                        isError={true}
+                        isHidden={this.state.idValid && this.state.groupValid}
+                    >
+                        Character % and non ASCII characters are not allowed
+                    </FormHelperText>
                 </FormGroup>
                 <FormGroup
                     label="Type"
@@ -103,17 +133,17 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
                     <div>
                         <Dropdown
                             toggle={
-                                <DropdownToggle id="form-type-toggle" onToggle={this.onTypeToggle} iconComponent={CaretDownIcon}>
+                                <DropdownToggle id="form-type-toggle" data-testid="form-type-toggle" onToggle={this.onTypeToggle} iconComponent={CaretDownIcon}>
                                     { this.state.type ? this.typeLabel(this.state.type) : "Auto-Detect" }
                                 </DropdownToggle>
                             }
                             onSelect={this.onTypeSelect}
                             isOpen={this.state.typeIsExpanded}
                             dropdownItems={[
-                                <DropdownItem key="auto" id=""><i>Auto-Detect</i></DropdownItem>,
+                                <DropdownItem key="auto" id="" data-testid="form-type-auto"><i>Auto-Detect</i></DropdownItem>,
                                 <DropdownSeparator key="separator" />,
                                 ...artifactTypes.map(t =>
-                                    <DropdownItem key={t.id} id={t.id}>{ t.label }</DropdownItem>
+                                    <DropdownItem key={t.id} id={t.id} data-testid={`form-type-${t.id}`}>{ t.label }</DropdownItem>
                                 )
                             ]}
                         />
@@ -126,6 +156,7 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
                 >
                     <FileUpload
                         id="artifact-content"
+                        data-testid="form-upload"
                         type="text"
                         filename={this.state.contentFilename}
                         value={this.state.content}
@@ -148,9 +179,12 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
             contentIsLoading: false,
             debouncedOnChange: debounce(this.props.onChange, 200),
             id: "",
+            group: "",
             type: "",
             typeIsExpanded: false,
-            valid: false
+            formValid: false,
+            idValid: true,
+            groupValid: true
         };
     }
 
@@ -165,21 +199,34 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
             typeIsExpanded: false
         }, () => {
             this.fireOnChange();
-            this.checkValid();
+            this.checkFormValid();
         });
     };
 
     private onIdChange = (value: any): void => {
-        this.setSingleState("id", value, () => {
+        this.setMultiState({
+            id: value,
+            idValid: this.isIdValid(value)
+        }, () => {
             this.fireOnChange();
-            this.checkValid();
+            this.checkFormValid();
+        });
+    };
+
+    private onGroupChange = (value: any): void => {
+        this.setMultiState({
+            group: value,
+            groupValid: this.isIdValid(value)
+        }, () => {
+            this.fireOnChange();
+            this.checkFormValid();
         });
     };
 
     private onContentChange = (value: any, filename: string, event: any): void => {
         this.setSingleState("content", value, () => {
             this.fireOnChange();
-            this.checkValid();
+            this.checkFormValid();
         });
     };
 
@@ -191,27 +238,46 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
         this.setSingleState("contentIsLoading", false);
     };
 
-    private checkValid(): void {
+    private checkFormValid(): void {
         const data: CreateArtifactData = this.currentData();
-        const oldValid: boolean = this.state.valid;
-        const newValid: boolean = this.isValid(data);
+        const oldValid: boolean = this.state.formValid;
+        const newValid: boolean = this.isFormValid(data);
         const validityChanged: boolean = oldValid !== newValid;
         this.setState({
-            valid: newValid
+            formValid: newValid
         }, () => {
             if (validityChanged) {
-                this.fireOnValid();
+                this.fireOnFormValid();
             }
         });
     }
 
-    private isValid(data: CreateArtifactData): boolean {
-        return !!data.content;
+    private isFormValid(data: CreateArtifactData): boolean {
+        return !!data.content && this.isIdValid(data.id) && this.isIdValid(data.groupId);
+    }
+
+    private isIdValid(id: string|null): boolean {
+        if (!id) {
+            //id is optional, server can generate it
+            return true;
+        } else {
+            // character % breaks the ui
+            const isAscii = (str: string) => {
+                for (let i = 0; i < str.length; i++){
+                    if(str.charCodeAt(i)>127){
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return id.indexOf("%") == -1 && isAscii(id);
+        }
     }
 
     private currentData(): CreateArtifactData {
         return {
             content: this.state.content,
+            groupId: this.state.group,
             id: this.state.id,
             type: this.state.type
         };
@@ -224,9 +290,9 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
         }
     }
 
-    private fireOnValid(): void {
+    private fireOnFormValid(): void {
         if (this.props.onValid) {
-            this.props.onValid(this.state.valid);
+            this.props.onValid(this.state.formValid);
         }
     }
 
@@ -234,6 +300,30 @@ export class UploadArtifactForm extends PureComponent<UploadArtifactFormProps, U
         return artifactTypes.filter( t => {
             return t.id === type;
         }).map( t => t.label )[0];
+    }
+
+    private idValidated(): any {
+        const data: CreateArtifactData = this.currentData();
+        if (this.isIdValid(data.id)) {
+            if (!data.id) {
+                return "default"
+            }
+            return "success"
+        } else {
+            return "error"
+        }
+    }
+
+    private groupValidated(): any {
+        const data: CreateArtifactData = this.currentData();
+        if (this.isIdValid(data.groupId)) {
+            if (!data.groupId) {
+                return "default"
+            }
+            return "success"
+        } else {
+            return "error"
+        }
     }
 
 }

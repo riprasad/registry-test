@@ -18,13 +18,16 @@
 
 export class VersionMetaData {
 
+    public groupId: string|null;
     public id: string;
     public name: string|null;
     public description: string|null;
+    public labels: string[]|null;
     public type: string;
     public version: number;
     public createdBy: string;
     public createdOn: Date;
+    public contentId: number|null;
     public globalId: number;
     public state: string;
 

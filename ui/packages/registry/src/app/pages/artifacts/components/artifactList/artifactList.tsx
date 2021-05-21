@@ -27,13 +27,15 @@ import {
 import {SearchedArtifact} from "@apicurio/registry-models";
 import {Link} from "react-router-dom";
 import {ArtifactTypeIcon, PureComponent, PureComponentProps, PureComponentState} from "../../../../components";
-import {Services} from "@apicurio/registry-services";
+import {ArtifactName} from "./artifactName";
+import {ArtifactGroup} from "./artifactGroup";
 
 /**
  * Properties
  */
 export interface ArtifactListProps extends PureComponentProps {
     artifacts: SearchedArtifact[];
+    onGroupClick: (groupId: string) => void;
 }
 
 /**
@@ -57,7 +59,7 @@ export class ArtifactList extends PureComponent<ArtifactListProps, ArtifactListS
         return (
             <DataList aria-label="List of artifacts" className="artifact-list">
                 {
-                    this.props.artifacts.map( artifact =>
+                    this.props.artifacts.map( (artifact, idx) =>
                             <DataListItemRow className="artifact-list-item" key={artifact.id}>
                                 <DataListItemCells
                                     dataListCells={[
@@ -66,10 +68,15 @@ export class ArtifactList extends PureComponent<ArtifactListProps, ArtifactListS
                                         </DataListCell>,
                                         <DataListCell key="main content" className="content-cell">
                                             <div className="artifact-title">
-                                                <span className="name">{artifact.name}</span>
-                                                <span className="id">{artifact.id}</span>
+                                                <ArtifactGroup groupId={artifact.groupId} onClick={this.props.onGroupClick} />
+                                                <ArtifactName groupId={artifact.groupId} id={artifact.id} name={artifact.name} />
+                                                {
+                                                    this.statuses(artifact).map( status =>
+                                                        <Badge className="status-badge" key={status} isRead={true}>{status}</Badge>
+                                                    )
+                                                }
                                             </div>
-                                            <div className="artifact-description">{artifact.description}</div>
+                                            <div className="artifact-description">{this.description(artifact)}</div>
                                             <div className="artifact-tags">
                                                 {
                                                     this.labels(artifact).map( label =>
@@ -80,13 +87,6 @@ export class ArtifactList extends PureComponent<ArtifactListProps, ArtifactListS
                                         </DataListCell>
                                     ]}
                                 />
-                                <DataListAction
-                                    id="artifact-actions"
-                                    aria-labelledby="artifact-actions"
-                                    aria-label="Actions"
-                                >
-                                    <Link className="pf-c-button pf-m-secondary" to={this.artifactLink(artifact)}>View artifact</Link>
-                                </DataListAction>
                             </DataListItemRow>
                     )
                 }
@@ -102,9 +102,27 @@ export class ArtifactList extends PureComponent<ArtifactListProps, ArtifactListS
         return artifact.labels ? artifact.labels : [];
     }
 
+    private statuses(artifact: SearchedArtifact): string[] {
+        const rval: string[] = [];
+        if (artifact.state === "DISABLED") {
+            rval.push("Disabled");
+        }
+        if (artifact.state === "DEPRECATED") {
+            rval.push("Deprecated");
+        }
+        return rval;
+    }
+
     private artifactLink(artifact: SearchedArtifact): string {
         const link: string = `/artifacts/${ encodeURIComponent(artifact.id) }`;
         return link;
+    }
+
+    private description(artifact: SearchedArtifact): string {
+        if (artifact.description) {
+            return artifact.description;
+        }
+        return `An artifact of type ${artifact.type} with no description.`;
     }
 
 }

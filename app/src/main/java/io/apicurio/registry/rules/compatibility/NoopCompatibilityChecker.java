@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ public class NoopCompatibilityChecker implements CompatibilityChecker {
     public static CompatibilityChecker INSTANCE = new NoopCompatibilityChecker();
 
     /**
-     * @see CompatibilityChecker#isCompatibleWith(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
+     * @see CompatibilityChecker#testCompatibility(io.apicurio.registry.rules.compatibility.CompatibilityLevel, java.util.List, java.lang.String)
      */
     @Override
-    public boolean isCompatibleWith(CompatibilityLevel compatibilityLevel, List<String> existingSchemas, String proposedSchema) {
+    public CompatibilityExecutionResult testCompatibility(CompatibilityLevel compatibilityLevel, List<String> existingSchemas, String proposedSchema) {
         requireNonNull(compatibilityLevel, "compatibilityLevel MUST NOT be null");
         requireNonNull(existingSchemas, "existingSchemas MUST NOT be null");
         requireNonNull(proposedSchema, "proposedSchema MUST NOT be null");
-        return true;
+        return CompatibilityExecutionResult.compatible();
     }
 }

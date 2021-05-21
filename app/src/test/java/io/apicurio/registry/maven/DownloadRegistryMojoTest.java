@@ -1,6 +1,6 @@
 /*
  * Copyright 2018 Confluent Inc. (adapted from their MojoTest)
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,21 @@
 
 package io.apicurio.registry.maven;
 
-import io.apicurio.registry.client.RegistryService;
-import io.apicurio.registry.rest.beans.ArtifactMetaData;
-import io.apicurio.registry.types.ArtifactType;
-import io.apicurio.registry.utils.tests.RegistryServiceTest;
-import io.quarkus.test.junit.QuarkusTest;
-import org.apache.avro.Schema;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Supplier;
+import java.util.List;
+
+import org.apache.avro.Schema;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import io.apicurio.registry.types.ArtifactType;
+import io.apicurio.registry.utils.tests.TestUtils;
+import io.quarkus.test.junit.QuarkusTest;
 
 /**
  * @author Ales Justin
@@ -44,23 +43,33 @@ public class DownloadRegistryMojoTest extends RegistryMojoTestBase {
     @BeforeEach
     public void createMojo() {
         this.mojo = new DownloadRegistryMojo();
-        this.mojo.registryUrl = "http://localhost:8081/api";
+        this.mojo.registryUrl = TestUtils.getRegistryV2ApiUrl();
     }
 
-    @RegistryServiceTest
-    public void testDownloadIds(Supplier<RegistryService> supplier) throws Exception {
+    @Test
+    public void testDownloadIds() throws Exception {
+        String groupId = DownloadRegistryMojoTest.class.getName();
         String artifactId = generateArtifactId();
 
         Schema schema = Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL)));
-        CompletionStage<ArtifactMetaData> cs = supplier.get().createArtifact(ArtifactType.AVRO, artifactId, null, new ByteArrayInputStream(schema.toString().getBytes(StandardCharsets.UTF_8)));
-        cs.toCompletableFuture().get();
+        clientV2.createArtifact(groupId, artifactId, ArtifactType.AVRO, new ByteArrayInputStream(schema.toString().getBytes(StandardCharsets.UTF_8)));
 
-        mojo.ids = Collections.singleton(artifactId);
-        mojo.artifactExtension = ".avsc";
-        mojo.outputDirectory = tempDirectory;
+        this.waitForArtifact(groupId, artifactId);
+
+        List<DownloadArtifact> artifacts = new ArrayList<>();
+        DownloadArtifact artifact = new DownloadArtifact();
+        artifact.setGroupId(groupId);
+        artifact.setArtifactId(artifactId);
+        artifact.setOverwrite(true);
+        artifact.setFile(new File(this.tempDirectory, "avro-schema.avsc"));
+        artifacts.add(artifact);
+
+        Assertions.assertFalse(artifact.getFile().isFile());
+
+        mojo.artifacts = artifacts;
         mojo.execute();
 
-        Assertions.assertTrue(new File(mojo.outputDirectory, artifactId + mojo.artifactExtension).exists());
+        Assertions.assertTrue(artifact.getFile().isFile());
     }
 
 }

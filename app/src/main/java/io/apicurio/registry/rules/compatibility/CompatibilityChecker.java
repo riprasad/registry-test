@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 
 /**
- * An interface that is used to determine whether a proposed artifact's content is compatible
+ * An interface that is used to determine whether a proposed artifact's content is compatible and return a set of
+ * incompatible differences
  * with older version(s) of the same content, based on a given compatibility level.
  *
  * @author Ales Justin
@@ -34,20 +35,19 @@ public interface CompatibilityChecker {
      * @param compatibilityLevel MUST NOT be null
      * @param existingArtifacts  MUST NOT be null and MUST NOT contain null elements,
      *                           but may be empty if the rule is executed and the artifact does not exist
-     *                           (e.g. a global COMPATIBILITY rule with {@see io.apicurio.registry.rules.RuleApplicationType#CREATE})
+     *                           (e.g. a global COMPATIBILITY rule with <code>io.apicurio.registry.rules.RuleApplicationType#CREATE</code>)
      * @param proposedArtifact   MUST NOT be null
      */
-    default boolean isCompatibleWith(CompatibilityLevel compatibilityLevel, List<ContentHandle> existingArtifacts, ContentHandle proposedArtifact) {
+    default CompatibilityExecutionResult testCompatibility(CompatibilityLevel compatibilityLevel, List<ContentHandle> existingArtifacts, ContentHandle proposedArtifact) {
         requireNonNull(compatibilityLevel, "compatibilityLevel MUST NOT be null");
         requireNonNull(existingArtifacts, "existingArtifacts MUST NOT be null");
         requireNonNull(proposedArtifact, "proposedArtifact MUST NOT be null");
         if (existingArtifacts.contains(null)) {
             throw new IllegalStateException("existingArtifacts contains null element(s)");
         }
-        return isCompatibleWith(
-            compatibilityLevel,
-            existingArtifacts.stream().map(ContentHandle::content).collect(Collectors.toList()),
-            proposedArtifact.content()
+        return testCompatibility(compatibilityLevel,
+             existingArtifacts.stream().map(ContentHandle::content).collect(Collectors.toList()),
+             proposedArtifact.content()
         );
     }
 
@@ -55,8 +55,8 @@ public interface CompatibilityChecker {
      * @param compatibilityLevel MUST NOT be null
      * @param existingArtifacts  MUST NOT be null and MUST NOT contain null elements,
      *                           but may be empty if the rule is executed and the artifact does not exist
-     *                           (e.g. a global COMPATIBILITY rule with {@see io.apicurio.registry.rules.RuleApplicationType#CREATE})
+     *                           (e.g. a global COMPATIBILITY rule with <code>io.apicurio.registry.rules.RuleApplicationType#CREATE</code>)
      * @param proposedArtifact   MUST NOT be null
      */
-    boolean isCompatibleWith(CompatibilityLevel compatibilityLevel, List<String> existingArtifacts, String proposedArtifact);
+    CompatibilityExecutionResult testCompatibility(CompatibilityLevel compatibilityLevel, List<String> existingArtifacts, String proposedArtifact);
 }

@@ -14,7 +14,7 @@ By default, `mvn clean install` produces an executable JAR with the *dev* Quarku
 Apicurio Registry supports 4 persistence implementations:
  - In-Memory
  - Kafka (Topics vs. KV-Store / Streams)
- - JPA
+ - SQL
  - Infinispan (POC / WIP)
  
 If you enable one, a separate set of artifacts is produced with the persistence implementation available.
@@ -22,11 +22,22 @@ If you enable one, a separate set of artifacts is produced with the persistence 
 Additionally, there are 2 main configuration profiles:
  - *dev* - suitable for development, and
  - *prod* - for production environment.
+ 
+### Getting started
+
+ ```
+ ./mvnw clean package -DskipTests
+ ./mvnw quarkus:dev
+ ```
+ 
+This should result in Quarkus starting up and the registry available on localhost port 8080.  Here some some links you can point your browser to once registry is started:
+
+* [User Interface](http://localhost:8080/)
+* [API documentation](http://localhost:8080/api)
 
 ### Build Options
  
- - `-Pkafka` enables a build of `storage/kafka` module and produces `apicurio-registry-storage-kafka-<version>-all.zip`.
- - `-Pjpa` enables a build of `storage/jpa` module and produces `apicurio-registry-storage-jpa-<version>-all.zip`. This artifact uses `H2` driver in *dev* mode,
+ - `-Psql` enables a build of `storage/sql` module and produces `apicurio-registry-storage-sql-<version>-all.zip`. This artifact uses `H2` driver in *dev* mode,
    and `PostgreSQL` driver in *prod* mode.
  - `-Pprod` enables Quarkus's *prod* configuration profile, which uses configuration options suitable for a production environment, 
    e.g. a higher logging level.
@@ -38,47 +49,20 @@ Additionally, there are 2 main configuration profiles:
 
 The following parameters are available for executable files:
 
-### JPA
+### SQL
  - In the *dev* mode, the application expects a H2 server running at `jdbc:h2:tcp://localhost:9123/mem:registry`.
  - In the *prod* mode, you have to provide connection configuration for a PostgreSQL server as follows:
   
 |Option|Command argument|Env. variable|
 |---|---|---|
-|Data Source URL|`-Dquarkus.datasource.url`|`QUARKUS_DATASOURCE_URL`|
-|DS Username|`-Dquarkus.datasource.username`|`QUARKUS_DATASOURCE_USERNAME`|
-|DS Password|`-Dquarkus.datasource.password`|`QUARKUS_DATASOURCE_PASSWORD`|
+|Data Source URL|`-Dquarkus.datasource.jdbc.url`|`REGISTRY_DATASOURCE_URL`|
+|DS Username|`-Dquarkus.datasource.username`|`REGISTRY_DATASOURCE_USERNAME`|
+|DS Password|`-Dquarkus.datasource.password`|`REGISTRY_DATASOURCE_PASSWORD`|
 
 To see additional options, visit:
+ - [Data Source config](https://quarkus.io/guides/datasource) 
  - [Data Source options](https://quarkus.io/guides/datasource-guide#configuration-reference) 
  - [Hibernate options](https://quarkus.io/guides/hibernate-orm-guide#properties-to-refine-your-hibernate-orm-configuration)
-
-### Kafka
-
- - In the *dev* mode, the application expects a Kafka broker running at `localhost:9092`.
- - In the *prod* mode, you have to provide an environment variable `KAFKA_BOOTSTRAP_SERVERS` pointing to Kafka brokers
-
-Kafka storage implementation uses the following Kafka API / architecture
-
- - Storage producer to forward REST API HTTP requests to Kafka broker
- - Storage consumer to handle previously sent  REST API HTTP requests as Kafka messages
- - Snapshot producer to send current state's snapshot to Kafka broker
- - Snapshot consumer for initial (at application start) snapshot handling
-
-We already have sensible defaults for all these things, but they can still be overridden or added by adding appropriate properties to app's configuration. The following property name prefix must be used:
-
- - Storage producer: registry.kafka.storage-producer.
- - Storage consumer: registry.kafka.storage-consumer.
- - Snapshot producer: registry.kafka.snapshot-producer.
- - Snapshot consumer: registry.kafka.snapshot-consumer.
-
-We then strip away the prefix and use the rest of the property name in instance's Properties.
-
-e.g. registry.kafka.storage-producer.enable.idempotence=true --> enable.idempotence=true
-
-For the actual configuration options check (although best config docs are in the code itself):
- - [Kafka configuration](https://kafka.apache.org/documentation/)
-
-To help setup development / testing environment for the module, see kafka_setup.sh script. You just need to have KAFKA_HOME env variable set, and script does the rest.
 
 ### Streams
 
@@ -118,14 +102,37 @@ For the actual configuration options check (although best config docs are in the
 
 To help setup development / testing environment for the module, see streams_setup.sh script. You just need to have KAFKA_HOME env variable set, and script does the rest.
 
-### Docker container
-The same options are available for the docker containers, but only in the form of environment variables (The command line parameters are for the `java` executable and at the moment it's not possible to pass them into the container).
+## Docker containers
+Every time a commit is pushed to `master` an updated set of docker images are built and pushed to Docker 
+Hub.  There are several docker images to choose from, one for each storage option.  The images include:
+
+* [apicurio-registry-mem](https://hub.docker.com/r/apicurio/apicurio-registry-mem)
+* [apicurio-registry-sql](https://hub.docker.com/r/apicurio/apicurio-registry-sql)
+* [apicurio-registry-infinispan](https://hub.docker.com/r/apicurio/apicurio-registry-infinispan)
+* [apicurio-registry-streams](https://hub.docker.com/r/apicurio/apicurio-registry-streams)
+
+Run one of the above docker images like this:
+
+    docker run -it -p 8080:8080 apicurio/apicurio-registry-mem
+
+The same configuration options are available for the docker containers, but only in the form of environment 
+variables (The command line parameters are for the `java` executable and at the moment it's not possible to 
+pass them into the container).  Each docker image will support the environment variable configuration options
+documented above for their respective storage type.
+
+There are a variety of docker image tags to choose from when running the registry docker images.  Each
+release of the project has a specific tag associated with it.  So release `1.2.0.Final` has an equivalent
+docker tag specific to that release.  We also support the following moving tags:
+
+* `latest-snapshot` : represents the most recent docker image produced whenever the `master` branch is updated
+* `latest-release` : represents the latest stable (released) build of Apicurio Registry
+* `latest` : represents the absolute newest build - essentially the newer of `latest-release` or `latest-snapshot`
 
 ## Examples
 
 Run Apicurio Registry with Postgres:
 
- - Compile using `mvn clean install -DskipTests -Pprod -Pjpa -Ddocker`
+ - Compile using `mvn clean install -DskipTests -Pprod -Psql -Ddocker`
 
  - Then create a docker-compose file `test.yml`: 
 ```yaml
@@ -138,13 +145,13 @@ services:
       POSTGRES_USER: apicurio-registry
       POSTGRES_PASSWORD: password
   app:
-    image: apicurio/apicurio-registry-jpa:1.0.0-SNAPSHOT
+    image: apicurio/apicurio-registry-sql:1.0.0-SNAPSHOT
     ports:
       - 8080:8080
     environment:
-      QUARKUS_DATASOURCE_URL: 'jdbc:postgresql://postgres/apicurio-registry'
-      QUARKUS_DATASOURCE_USERNAME: apicurio-registry
-      QUARKUS_DATASOURCE_PASSWORD: password
+      REGISTRY_DATASOURCE_URL: 'jdbc:postgresql://postgres/apicurio-registry'
+      REGISTRY_DATASOURCE_USERNAME: apicurio-registry
+      REGISTRY_DATASOURCE_PASSWORD: password
 ```
   - Run `docker-compose -f test.yml up`
 

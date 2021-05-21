@@ -27,8 +27,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -36,6 +34,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.apicurio.registry.ui.beans.ConfigJs;
+import io.apicurio.registry.ui.config.UiConfigProperties;
+import io.apicurio.registry.utils.StringUtil;
+import io.quarkus.security.identity.SecurityIdentity;
 
 /**
  * Generates the 'config.js' file imported by the UI.
@@ -44,11 +45,12 @@ import io.apicurio.registry.ui.beans.ConfigJs;
 public class ConfigJsServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1624928159818173418L;
-    
+
     @Inject
-    @ConfigProperty(name = "registry.ui.features.readOnly")
-    Boolean featureReadOnly;
-    
+    UiConfigProperties uiConfig;
+
+    @Inject
+    SecurityIdentity identity;
 
     /**
      * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
@@ -70,12 +72,14 @@ public class ConfigJsServlet extends HttpServlet {
             config.mode = "prod";
 
             config.artifacts.url = this.generateApiUrl(request);
-            
+
             config.ui.url = this.generateUiUrl(request);
             config.ui.contextPath = "/ui";
-            
-            config.features.readOnly = this.isFeatureReadOnly();
-            
+
+            config.features.readOnly = uiConfig.isFeatureReadOnly();
+
+            configureAuth(config);
+
             g.writeObject(config);
 
             g.flush();
@@ -86,13 +90,40 @@ public class ConfigJsServlet extends HttpServlet {
     }
 
     /**
+     * Configure the auth settings.
+     * @param config
+     */
+    private void configureAuth(ConfigJs config) {
+        if (uiConfig.isKeycloakAuthEnabled()) {
+            config.auth.type = "keycloakjs";
+            config.auth.options = uiConfig.getKeycloakProperties();
+        } else {
+            config.auth.type = "none";
+        }
+    }
+
+    /**
      * Generates a URL that the caller can use to access the API.
      * @param request
      */
     private String generateApiUrl(HttpServletRequest request) {
+        String apiRelativePath = "/apis/registry";
         try {
-            String url = request.getRequestURL().toString();
-            url = new URI(url).resolve("/api").toString();
+            String apiUrl = uiConfig.getApiUrl();
+            if (!"_".equals(apiUrl) && !StringUtil.isEmpty(apiUrl)) {
+                return apiUrl;
+            }
+
+            String url = resolveUrlFromXForwarded(request, apiRelativePath);
+            if (url != null) {
+                return url;
+            }
+
+            url = request.getRequestURL().toString();
+            url = new URI(url).resolve(apiRelativePath).toString();
+            if (url.startsWith("http:") && request.isSecure()) {
+                url = url.replaceFirst("http", "https");
+            }
             return url;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -105,19 +136,41 @@ public class ConfigJsServlet extends HttpServlet {
      */
     private String generateUiUrl(HttpServletRequest request) {
         try {
-            String url = request.getRequestURL().toString();
+            String uiUrl = uiConfig.getUiUrl();
+            if (!"_".equals(uiUrl) && !StringUtil.isEmpty(uiUrl)) {
+                return uiUrl;
+            }
+
+            String url = resolveUrlFromXForwarded(request, "/ui");
+            if (url != null) {
+                return url;
+            }
+
+            url = request.getRequestURL().toString();
             url = new URI(url).resolve("/ui").toString();
+            if (url.startsWith("http:") && request.isSecure()) {
+                url = url.replaceFirst("http", "https");
+            }
             return url;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * Returns true if the "read only" feature is enabled.
+     * Resolves a URL path relative to the information found in X-Forwarded-Host and X-Forwarded-Proto.
+     * @param path
      */
-    private boolean isFeatureReadOnly() {
-        return featureReadOnly == null ? false : featureReadOnly;
+    private String resolveUrlFromXForwarded(HttpServletRequest request, String path) {
+        try {
+            String fproto = request.getHeader("X-Forwarded-Proto");
+            String fhost = request.getHeader("X-Forwarded-Host");
+            if (!StringUtil.isEmpty(fproto) && !StringUtil.isEmpty(fhost)) {
+                return new URI(fproto + "://" + fhost).resolve(path).toString();
+            }
+        } catch (URISyntaxException e) {
+        }
+        return null;
     }
 
 }

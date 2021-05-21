@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package io.apicurio.registry.rules.validity;
 
-import io.apicurio.registry.AbstractRegistryTestBase;
-import io.apicurio.registry.content.ContentHandle;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import io.apicurio.registry.AbstractRegistryTestBase;
+import io.apicurio.registry.content.ContentHandle;
+import io.apicurio.registry.rules.RuleViolationException;
 
 /**
  * Tests the OpenAPI content validator.
@@ -45,7 +47,7 @@ public class OpenApiContentValidatorTest extends AbstractRegistryTestBase {
     public void testInvalidSyntax() throws Exception {
         ContentHandle content = resourceToContentHandle("openapi-invalid-syntax.json");
         OpenApiContentValidator validator = new OpenApiContentValidator();
-        Assertions.assertThrows(InvalidContentException.class, () -> {
+        Assertions.assertThrows(RuleViolationException.class, () -> {
             validator.validate(ValidityLevel.SYNTAX_ONLY, content);
         });
     }
@@ -54,7 +56,7 @@ public class OpenApiContentValidatorTest extends AbstractRegistryTestBase {
     public void testInvalidSemantics() throws Exception {
         ContentHandle content = resourceToContentHandle("openapi-invalid-semantics.json");
         OpenApiContentValidator validator = new OpenApiContentValidator();
-        Assertions.assertThrows(InvalidContentException.class, () -> {
+        Assertions.assertThrows(RuleViolationException.class, () -> {
             validator.validate(ValidityLevel.FULL, content);
         });
     }

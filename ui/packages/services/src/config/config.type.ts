@@ -16,7 +16,8 @@
  */
 
 export interface FeaturesConfig {
-    readOnly?: boolean
+    readOnly?: boolean;
+    breadcrumbs?: boolean;
 }
 
 export interface ArtifactsConfig {
@@ -29,9 +30,15 @@ export interface UiConfig {
     contextPath: string;
 }
 
+export interface AuthConfig {
+    type: string;
+    options: any;
+}
+
 export interface ConfigType {
     mode: string;
     artifacts: ArtifactsConfig;
+    auth: AuthConfig;
     features?: FeaturesConfig;
     ui: UiConfig;
 }

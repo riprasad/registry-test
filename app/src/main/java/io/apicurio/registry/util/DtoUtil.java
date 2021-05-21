@@ -1,5 +1,6 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
+ * Copyright 2020 IBM
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +17,8 @@
 
 package io.apicurio.registry.util;
 
-import io.apicurio.registry.rest.beans.ArtifactMetaData;
-import io.apicurio.registry.rest.beans.VersionMetaData;
-import io.apicurio.registry.storage.ArtifactMetaDataDto;
-import io.apicurio.registry.storage.ArtifactVersionMetaDataDto;
-import io.apicurio.registry.types.ArtifactType;
+import io.apicurio.registry.storage.dto.ArtifactMetaDataDto;
+import io.apicurio.registry.storage.dto.EditableArtifactMetaDataDto;
 
 /**
  * @author eric.wittmann@gmail.com
@@ -28,71 +26,26 @@ import io.apicurio.registry.types.ArtifactType;
 public final class DtoUtil {
 
     /**
-     * Creates a jax-rs meta-data entity from the id, type, and storage meta-data.
+     * Sets values from the EditableArtifactMetaDataDto into the ArtifactMetaDataDto.
      *
-     * @param artifactId
-     * @param artifactType
-     * @param dto
+     * @param amdd
+     * @param editableArtifactMetaData
+     * @return the updated ArtifactMetaDataDto object
      */
-    public static final ArtifactMetaData dtoToMetaData(String artifactId, ArtifactType artifactType,
-                                                  ArtifactMetaDataDto dto) {
-        ArtifactMetaData metaData = new ArtifactMetaData();
-        metaData.setCreatedBy(dto.getCreatedBy());
-        metaData.setCreatedOn(dto.getCreatedOn());
-        metaData.setDescription(dto.getDescription());
-        metaData.setId(artifactId);
-        metaData.setModifiedBy(dto.getModifiedBy());
-        metaData.setModifiedOn(dto.getModifiedOn());
-        metaData.setName(dto.getName());
-        metaData.setType(artifactType);
-        metaData.setVersion(dto.getVersion());
-        metaData.setGlobalId(dto.getGlobalId());
-        metaData.setState(dto.getState());
-        return metaData;
-    }
-
-    /**
-     * Creates a jax-rs version meta-data entity from the id, type, and storage meta-data.
-     *
-     * @param artifactId
-     * @param artifactType
-     * @param dto
-     */
-    public static final VersionMetaData dtoToVersionMetaData(String artifactId, ArtifactType artifactType,
-                                                        ArtifactMetaDataDto dto) {
-        VersionMetaData metaData = new VersionMetaData();
-        metaData.setId(artifactId);
-        metaData.setCreatedBy(dto.getCreatedBy());
-        metaData.setCreatedOn(dto.getCreatedOn());
-        metaData.setDescription(dto.getDescription());
-        metaData.setName(dto.getName());
-        metaData.setType(artifactType);
-        metaData.setVersion(dto.getVersion());
-        metaData.setGlobalId(dto.getGlobalId());
-        metaData.setState(dto.getState());
-        return metaData;
-    }
-
-    /**
-     * Creates a jax-rs version meta-data entity from the id, type, and storage meta-data.
-     *
-     * @param artifactId
-     * @param artifactType
-     * @param dto
-     */
-    public static final VersionMetaData dtoToVersionMetaData(String artifactId, ArtifactType artifactType,
-                                                        ArtifactVersionMetaDataDto dto) {
-        VersionMetaData metaData = new VersionMetaData();
-        metaData.setId(artifactId);
-        metaData.setCreatedBy(dto.getCreatedBy());
-        metaData.setCreatedOn(dto.getCreatedOn());
-        metaData.setDescription(dto.getDescription());
-        metaData.setName(dto.getName());
-        metaData.setType(artifactType);
-        metaData.setVersion(dto.getVersion());
-        metaData.setGlobalId(dto.getGlobalId());
-        metaData.setState(dto.getState());
-        return metaData;
+    public static final ArtifactMetaDataDto setEditableMetaDataInArtifact(ArtifactMetaDataDto amdd, EditableArtifactMetaDataDto editableArtifactMetaData) {
+        if (editableArtifactMetaData.getName() != null) {
+            amdd.setName(editableArtifactMetaData.getName());
+        }
+        if (editableArtifactMetaData.getDescription() != null) {
+            amdd.setDescription(editableArtifactMetaData.getDescription());
+        }
+        if (editableArtifactMetaData.getLabels() != null && !editableArtifactMetaData.getLabels().isEmpty()) {
+            amdd.setLabels(editableArtifactMetaData.getLabels());
+        }
+        if (editableArtifactMetaData.getProperties() != null) {
+            amdd.setProperties(editableArtifactMetaData.getProperties());
+        }
+        return amdd;
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright 2018 Confluent Inc. (adapted from their Mojo)
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@
 
 package io.apicurio.registry.maven;
 
-import io.apicurio.registry.client.RegistryClient;
-import io.apicurio.registry.client.RegistryService;
+import io.apicurio.registry.auth.Auth;
+import io.apicurio.registry.auth.BasicAuth;
+import io.apicurio.registry.auth.KeycloakAuth;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import io.apicurio.registry.rest.client.RegistryClient;
+import io.apicurio.registry.rest.client.RegistryClientFactory;
+
+import java.util.Collections;
 
 /**
  * Base class for all Registry Mojo's.
@@ -39,31 +45,48 @@ public abstract class AbstractRegistryMojo extends AbstractMojo {
     @Parameter(required = true)
     String registryUrl;
 
-    private RegistryService client;
+    @Parameter
+    String authServerUrl;
 
-    protected RegistryService getClient() {
+    @Parameter
+    String realm;
+
+    @Parameter
+    String clientId;
+
+    @Parameter
+    String clientSecret;
+
+    @Parameter
+    String username;
+
+    @Parameter
+    String password;
+
+    private static RegistryClient client;
+
+    protected RegistryClient getClient() {
         if (client == null) {
-            client = RegistryClient.cached(registryUrl);
+            if (authServerUrl != null && realm != null && clientId != null && clientSecret != null) {
+                Auth auth = new KeycloakAuth(authServerUrl, realm, clientId, clientSecret);
+                client = RegistryClientFactory.create(registryUrl, Collections.emptyMap(), auth);
+            } else if (username != null && password != null) {
+                Auth auth = new BasicAuth(username, password);
+                client = RegistryClientFactory.create(registryUrl, Collections.emptyMap(), auth);
+            } else {
+                client = RegistryClientFactory.create(registryUrl);
+            }
         }
         return client;
     }
 
-    protected void setClient(RegistryService client) {
-        this.client = client;
+    protected void setClient(RegistryClient client) {
+        AbstractRegistryMojo.client = client;
     }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try {
-            executeInternal();
-        } finally {
-            if (client != null) {
-                try {
-                    client.close();
-                } catch (Exception ignored) {
-                }
-            }
-        }
+        executeInternal();
     }
 
     protected abstract void executeInternal() throws MojoExecutionException, MojoFailureException;

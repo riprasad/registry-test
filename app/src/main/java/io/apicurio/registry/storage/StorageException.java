@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package io.apicurio.registry.storage;
 import io.apicurio.registry.types.RegistryException;
 
 /**
- * Base class for all storage exceptions.
+ * Base class for all artifactStore exceptions.
  * @author eric.wittmann@gmail.com
  */
 public abstract class StorageException extends RegistryException {

@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 import {ArtifactsService} from "./artifacts";
+import {GroupsService} from "./groups";
 import {ConfigService} from "./config";
 import {LoggerService} from "./logger";
-import {GlobalsService} from "./globals";
+import {AdminService} from "./admin";
 import {Service} from "./baseService";
 import {DownloaderService} from "./downloader";
-
-interface AllServices {
-    artifacts: ArtifactsService;
-    config: ConfigService;
-    globals: GlobalsService;
-    logger: LoggerService;
-}
+import {AuthService} from "./auth";
 
 /**
  * Class that provides access to all of the services in the application.
@@ -35,6 +30,10 @@ export class Services {
 
     public static getArtifactsService(): ArtifactsService {
         return Services.all.artifacts;
+    }
+
+    public static getGroupsService(): GroupsService {
+        return Services.all.groups;
     }
 
     public static getConfigService(): ConfigService {
@@ -49,16 +48,22 @@ export class Services {
         return Services.all.logger;
     }
 
-    public static getGlobalsService(): GlobalsService {
-        return Services.all.globals;
+    public static getAdminService(): AdminService {
+        return Services.all.admin;
+    }
+
+    public static getAuthService(): AuthService {
+        return Services.all.auth;
     }
 
     private static all: any = {
         artifacts: new ArtifactsService(),
+        groups: new GroupsService(),
         config: new ConfigService(),
         downloader: new DownloaderService(),
-        globals: new GlobalsService(),
-        logger: new LoggerService()
+        admin: new AdminService(),
+        logger: new LoggerService(),
+        auth: new AuthService()
     };
 
     // tslint:disable-next-line:member-ordering member-access

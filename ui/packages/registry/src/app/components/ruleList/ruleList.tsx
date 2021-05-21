@@ -24,7 +24,7 @@ import {
     DataListCell,
     DataListItem,
     DataListItemCells,
-    DataListItemRow
+    DataListItemRow, EmptyStateBody
 } from '@patternfly/react-core';
 import {PureComponent, PureComponentProps, PureComponentState} from "../baseComponent";
 import {CodeBranchIcon, OkIcon, TrashIcon} from "@patternfly/react-icons";
@@ -32,6 +32,7 @@ import {Rule} from "@apicurio/registry-models";
 import {CompatibilityDropdown} from "./compatibility-dropdown";
 import {ValidityDropdown} from "./validity-dropdown";
 import {IfFeature} from "../common/ifFeature";
+import {IfAuth} from "../common";
 
 
 export interface RuleListProps extends PureComponentProps {
@@ -54,24 +55,40 @@ export class RuleList extends PureComponent<RuleListProps, RuleListState> {
 
     public render(): React.ReactElement {
         let validityRuleActions: React.ReactElement = (
-            <Button variant="secondary" key="enable-action" onClick={this.doEnableRule("VALIDITY")}>Enable</Button>
+            <Button variant="secondary"
+                    key="enable-action"
+                    data-testid="rules-validity-enable"
+                    onClick={this.doEnableRule("VALIDITY")}>Enable</Button>
         );
         if (this.isRuleEnabled("VALIDITY")) {
             validityRuleActions = (
                 <React.Fragment>
-                    <ValidityDropdown value={this.getRuleConfig("VALIDITY")} onSelect={this.doConfigureRule("VALIDITY")} />
-                    <Button variant="plain" key="delete-action" title="Disable the validity rule" onClick={this.doDisableRule("VALIDITY")}><TrashIcon /></Button>
+                    <ValidityDropdown value={this.getRuleConfig("VALIDITY")}
+                                      onSelect={this.doConfigureRule("VALIDITY")} />
+                    <Button variant="plain"
+                            key="delete-action"
+                            data-testid="rules-validity-disable"
+                            title="Disable the validity rule"
+                            onClick={this.doDisableRule("VALIDITY")}><TrashIcon /></Button>
                 </React.Fragment>
             );
         }
         let compatibilityRuleActions: React.ReactElement = (
-            <Button variant="secondary" key="enable-action" onClick={this.doEnableRule("COMPATIBILITY")}>Enable</Button>
+            <Button variant="secondary"
+                    key="enable-action"
+                    data-testid="rules-compatibility-enable"
+                    onClick={this.doEnableRule("COMPATIBILITY")}>Enable</Button>
         );
         if (this.isRuleEnabled("COMPATIBILITY")) {
             compatibilityRuleActions = (
                 <React.Fragment>
-                    <CompatibilityDropdown value={this.getRuleConfig("COMPATIBILITY")} onSelect={this.doConfigureRule("COMPATIBILITY")} />
-                    <Button variant="plain" key="delete-action" title="Disable the compatibility rule" onClick={this.doDisableRule("COMPATIBILITY")}><TrashIcon /></Button>
+                    <CompatibilityDropdown value={this.getRuleConfig("COMPATIBILITY")}
+                                           onSelect={this.doConfigureRule("COMPATIBILITY")} />
+                    <Button variant="plain"
+                            key="delete-action"
+                            data-testid="rules-compatibility-disable"
+                            title="Disable the compatibility rule"
+                            onClick={this.doDisableRule("COMPATIBILITY")}><TrashIcon /></Button>
                 </React.Fragment>
             );
         }
@@ -88,15 +105,17 @@ export class RuleList extends PureComponent<RuleListProps, RuleListState> {
                             <DataListCell key="rule-description">Ensure that content is <em>valid</em> when updating this artifact.</DataListCell>
                         ]}
                         />
-                        <IfFeature feature="readOnly" isNot={true}>
-                            <DataListAction
-                                aria-labelledby="selectable-action-item1 selectable-action-action1"
-                                id="selectable-action-action1"
-                                aria-label="Actions"
-                            >
-                                { validityRuleActions}
-                            </DataListAction>
-                        </IfFeature>
+                        <IfAuth isDeveloper={true}>
+                            <IfFeature feature="readOnly" isNot={true}>
+                                <DataListAction
+                                    aria-labelledby="selectable-action-item1 selectable-action-action1"
+                                    id="selectable-action-action1"
+                                    aria-label="Actions"
+                                >
+                                    { validityRuleActions}
+                                </DataListAction>
+                            </IfFeature>
+                        </IfAuth>
                     </DataListItemRow>
                 </DataListItem>
                 <DataListItem aria-labelledby="compatibility-rule-name">
@@ -109,15 +128,17 @@ export class RuleList extends PureComponent<RuleListProps, RuleListState> {
                             <DataListCell key="rule-description">Enforce a compatibility level when updating this artifact (e.g. Backwards Compatibility).</DataListCell>
                         ]}
                         />
-                        <IfFeature feature="readOnly" isNot={true}>
-                            <DataListAction
-                                aria-labelledby="selectable-action-item1 selectable-action-action1"
-                                id="selectable-action-action2"
-                                aria-label="Actions"
-                            >
-                                { compatibilityRuleActions }
-                            </DataListAction>
-                        </IfFeature>
+                        <IfAuth isDeveloper={true}>
+                            <IfFeature feature="readOnly" isNot={true}>
+                                <DataListAction
+                                    aria-labelledby="selectable-action-item1 selectable-action-action1"
+                                    id="selectable-action-action2"
+                                    aria-label="Actions"
+                                >
+                                    { compatibilityRuleActions }
+                                </DataListAction>
+                            </IfFeature>
+                        </IfAuth>
                     </DataListItemRow>
                 </DataListItem>
             </DataList>

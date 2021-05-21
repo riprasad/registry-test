@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat
+ * Copyright 2020 Red Hat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import io.apicurio.registry.types.RegistryException;
 
 /**
  * This exception covers the following errors in the compat API:
- * - 409 Conflict – Incompatible Avro schema
+ * - 409 Conflict – Incompatible schema
  */
 public class ConflictException extends RegistryException {
 
