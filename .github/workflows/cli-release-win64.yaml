@@ -25,7 +25,7 @@ jobs:
         echo "$SOURCE_CODE_URL"
         echo "$UPLOAD_URL"
 
-    - name: Download Source Code
+    - name: Download Source Code Zip
       run: Invoke-WebRequest $Env:SOURCE_CODE_URL -OutFile $Env:RELEASE_VERSION
       
     - name: Unzip Source code
