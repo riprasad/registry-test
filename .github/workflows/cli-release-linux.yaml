@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: Fetch required Details
       run: |
-          touch latestRelease.json && curl https://api.github.com/repos/apicurio/apicurio-registry/releases/latest > latestRelease.json
+          touch latestRelease.json && curl https://api.github.com/repos/riprasad/registry-test/releases/latest > latestRelease.json
           echo "RELEASE_VERSION=$(cat latestRelease.json | jq -r '.name')" >> $GITHUB_ENV
           echo "SOURCE_CODE_URL=$(cat latestRelease.json | jq -r '.zipball_url')" >> $GITHUB_ENV
           echo "UPLOAD_URL=$(cat latestRelease.json | jq -r '.upload_url')" >> $GITHUB_ENV
