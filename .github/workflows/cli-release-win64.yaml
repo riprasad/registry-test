@@ -79,6 +79,10 @@ jobs:
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
         cd registry && mvnw.cmd -pl cli package -Dnative
       shell: cmd
+      
+    - name: List Files
+      shell: bash
+      run: ls -lrt registry/cli/target/
 
     - name: Upload native executable
       id: upload-native-executable
