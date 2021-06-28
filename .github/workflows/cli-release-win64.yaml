@@ -27,7 +27,7 @@ jobs:
 
     - name: Download Source Code
       shell: bash
-      run: curl $SOURCE_CODE_URL && jar xf $RELEASE_VERSION && ls -lrt && mv ${{github.repository_owner}}* registry
+      run: curl $SOURCE_CODE_URL && ls -lrt && jar xf $RELEASE_VERSION && ls -lrt && mv ${{github.repository_owner}}* registry
         
     # We have faced issues in the past where a github release was created from a wrong commit
     # This step will ensure that the release was created from the right commit  
