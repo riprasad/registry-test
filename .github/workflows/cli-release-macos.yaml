@@ -11,12 +11,12 @@ jobs:
     runs-on: macos-latest
     steps:
     - name: Fetch required Details
-      shell: bash
       run: |
           touch latestRelease.json && curl https://api.github.com/repos/riprasad/registry-test/releases/latest > latestRelease.json
           echo "RELEASE_VERSION=$(cat latestRelease.json | jq -r '.name')" >> $GITHUB_ENV
           echo "SOURCE_CODE_URL=$(cat latestRelease.json | jq -r '.zipball_url')" >> $GITHUB_ENV
           echo "UPLOAD_URL=$(cat latestRelease.json | jq -r '.upload_url')" >> $GITHUB_ENV
+
     - name: Download Source Code
       run: wget -c $SOURCE_CODE_URL && unzip $RELEASE_VERSION && ls -lrt && mv ${{github.repository_owner}}* registry
         
@@ -61,7 +61,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ env.UPLOAD_URL }}
-        asset_path: ./registry/cli/target/apicurio-registry-cli-${{ env.TAG_NAME }}-runner
+        asset_path: ./registry/cli/target/apicurio-registry-cli-${{ env.RELEASE_VERSION }}-runner
         asset_name: apicurio-registry-cli-${{ env.TAG_NAME }}-macos
         asset_label: macos
         asset_content_type: application/octet-stream
