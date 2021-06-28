@@ -70,6 +70,7 @@ jobs:
       run: cd registry && mvn -N io.takari:maven:wrapper -Dmaven=3.6.3
 
     - name: Build jvm jar
+      shell: cmd
       run: cd registry && mvnw.cmd -pl cli -am install
 
     - name: Build native executable
