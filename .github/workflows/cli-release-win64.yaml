@@ -17,6 +17,13 @@ jobs:
           echo "RELEASE_VERSION=$(cat latestRelease.json | jq -r '.name')" >> $GITHUB_ENV
           echo "SOURCE_CODE_URL=$(cat latestRelease.json | jq -r '.zipball_url')" >> $GITHUB_ENV
           echo "UPLOAD_URL=$(cat latestRelease.json | jq -r '.upload_url')" >> $GITHUB_ENV
+          
+    - name: Echo Environment Variables
+      shell: bash
+      run: |
+        echo "$RELEASE_VERSION"
+        echo "$SOURCE_CODE_URL"
+        echo "$UPLOAD_URL"
 
     - name: Download Source Code
       shell: bash
