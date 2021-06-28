@@ -91,7 +91,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ env.UPLOAD_URL }}
-        asset_path: .registry/cli/target/apicurio-registry-cli-${{ env.RELEASE_VERSION }}-runner.exe
+        asset_path: ./registry/cli/target/apicurio-registry-cli-${{ env.RELEASE_VERSION }}-runner.exe
         asset_name: apicurio-registry-cli-${{ env.RELEASE_VERSION }}-win64.exe
         asset_label: win64
         asset_content_type: application/octet-stream
