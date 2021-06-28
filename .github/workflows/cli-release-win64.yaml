@@ -26,7 +26,7 @@ jobs:
         echo "$UPLOAD_URL"
 
     - name: Download Source Code
-      run: Invoke-WebRequest %SOURCE_CODE_URL%
+      run: Invoke-WebRequest $Env:SOURCE_CODE_URL
       
     - name: Unzip Source code
       shell: bash
