@@ -10,15 +10,6 @@ IMAGE_REPOSITORY="$2"  # Image Repository, e.g. docker.io, quay.io
 RELEASE_TYPE="$3"      # Either 'snapshot' or 'release'
 RELEASE_VERSION=${4:-$defvalue}   # Release version (Pass the release version if you also want images tagged with the release version to be pushed)
 
-# Check if image repository is either 'docker.io' or 'quay.io'
-if [[ ($IMAGE_REPOSITORY == "docker.io")]]
-then
-    echo "Logging to docker.io"
-    echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-else
-    echo "Logging to quay.io"
-    docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}" quay.io
-fi
 
 
 # Check if release type is valid
