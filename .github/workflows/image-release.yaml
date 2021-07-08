@@ -8,10 +8,6 @@ on:
 # github.event context is only available when the workflow gets triggered by a release event. Therefore, commenting the below
 # section and add an additional step of fething the required details explicitly to make the workflow work with manual triggers
 
-env:
-  # Setting up workflow level environment varibles to make them available in both jobs
-  # The values are extracted from the github.event context, which is automatically availble when a release a created.
-  RELEASE_VERSION: "2.0.0.Final"
 #env:
 #  # Setting up workflow level environment varibles to make them available in both jobs
 #  # The values are extracted from the github.event context, which is automatically availble when a release a created.
@@ -24,6 +20,13 @@ jobs:
   release-images:
     runs-on: ubuntu-18.04 
     steps:
+    
+
+      - name: Fetch required Details
+        run: |
+          touch latestRelease.json && curl https://api.github.com/repos/apicurio/apicurio-registry/releases/latest > latestRelease.json
+          echo "RELEASE_VERSION=$(cat latestRelease.json | jq '.name' | sed 's/"//g')" >> $GITHUB_ENV
+          echo "BRANCH=$(cat latestRelease.json | jq '.target_commitish' | sed 's/"//g')" >> $GITHUB_ENV
       
       - name: Checkout Code
         uses: actions/checkout@v2
