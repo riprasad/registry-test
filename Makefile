@@ -64,7 +64,7 @@ build-mem-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(MEM_DOCKERFILE) -t $(IMAGE_REPO)/apicurio/apicurio-registry-mem:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
+	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(MEM_DOCKERFILE) -t $(IMAGE_REPO)/riprasad/apicurio-registry-mem:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
 
 
 .PHONY: push-mem-image ## Pushes docker image for 'in-memory' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
@@ -74,7 +74,7 @@ push-mem-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-mem:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-mem:$(IMAGE_TAG)
 
 
 
@@ -85,7 +85,7 @@ build-sql-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(SQL_DOCKERFILE) -t $(IMAGE_REPO)/apicurio/apicurio-registry-sql:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
+	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(SQL_DOCKERFILE) -t $(IMAGE_REPO)/riprasad/apicurio-registry-sql:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
 
 .PHONY: push-sql-image ## Pushes docker image for 'sql' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 push-sql-image:
@@ -94,7 +94,7 @@ push-sql-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-sql:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-sql:$(IMAGE_TAG)
 
 .PHONY: build-sql-native-image ## Builds docker image for 'sql' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 build-sql-native-image:
@@ -103,7 +103,7 @@ build-sql-native-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker build -f $(DISTRO_DOCKER_WORKSPACE)/Dockerfile.native -t $(IMAGE_REPO)/apicurio/apicurio-registry-sql-native:$(IMAGE_TAG) storage/sql
+	docker build -f $(DISTRO_DOCKER_WORKSPACE)/Dockerfile.native -t $(IMAGE_REPO)/riprasad/apicurio-registry-sql-native:$(IMAGE_TAG) storage/sql
 
 .PHONY: push-sql-native-image ## Pushes docker image for 'sql' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 push-sql-native-image:
@@ -112,7 +112,7 @@ push-sql-native-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-sql-native:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-sql-native:$(IMAGE_TAG)
 
 .PHONY: build-kafkasql-image ## Builds docker image for kafkasql storage variant. Variables available for override [KAFKASQL_DOCKERFILE, IMAGE_REPO, IMAGE_TAG, DOCKER_BUILD_WORKSPACE]
 build-kafkasql-image:
@@ -121,7 +121,7 @@ build-kafkasql-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(KAFKASQL_DOCKERFILE) -t $(IMAGE_REPO)/apicurio/apicurio-registry-kafkasql:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
+	docker build -f $(DISTRO_DOCKER_WORKSPACE)/$(KAFKASQL_DOCKERFILE) -t $(IMAGE_REPO)/riprasad/apicurio-registry-kafkasql:$(IMAGE_TAG) $(DOCKER_BUILD_WORKSPACE)
 
 
 .PHONY: push-kafkasql-image ## Pushes docker image for 'kafkasql' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
@@ -131,7 +131,7 @@ push-kafkasql-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-kafkasql:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-kafkasql:$(IMAGE_TAG)
 
 .PHONY: build-kafkasql-native-image ## Builds docker image for kafkasql storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 build-kafkasql-native-image:
@@ -140,7 +140,7 @@ build-kafkasql-native-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker build -f $(DISTRO_DOCKER_WORKSPACE)/Dockerfile.native -t $(IMAGE_REPO)/apicurio/apicurio-registry-kafkasql-native:$(IMAGE_TAG) storage/kafkasql
+	docker build -f $(DISTRO_DOCKER_WORKSPACE)/Dockerfile.native -t $(IMAGE_REPO)/riprasad/apicurio-registry-kafkasql-native:$(IMAGE_TAG) storage/kafkasql
 
 
 .PHONY: push-kafkasql-native-image ## Pushes docker image for 'kafkasql' storage variant. Variables available for override [IMAGE_REPO, IMAGE_TAG]
@@ -150,7 +150,7 @@ push-kafkasql-native-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-kafkasql-native:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-kafkasql-native:$(IMAGE_TAG)
 
 .PHONY: build-tenant-manager-image ## Builds native docker image for tenant manager. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 build-tenant-manager-image:
@@ -159,7 +159,7 @@ build-tenant-manager-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)-native"
 	@echo "------------------------------------------------------------------------"
-	docker build -f multitenancy/tenant-manager-api/src/main/docker/Dockerfile.native -t $(IMAGE_REPO)/apicurio/apicurio-registry-tenant-manager-api:$(IMAGE_TAG) ./multitenancy/tenant-manager-api/
+	docker build -f multitenancy/tenant-manager-api/src/main/docker/Dockerfile.native -t $(IMAGE_REPO)/riprasad/apicurio-registry-tenant-manager-api:$(IMAGE_TAG) ./multitenancy/tenant-manager-api/
 
 
 .PHONY: push-tenant-manager-image ## Pushes docker image for tenant-manager-api. Variables available for override [IMAGE_REPO, IMAGE_TAG]
@@ -169,7 +169,7 @@ push-tenant-manager-image:
 	@echo " Repository: $(IMAGE_REPO)"
 	@echo " Tag: $(IMAGE_TAG)"
 	@echo "------------------------------------------------------------------------"
-	docker push $(IMAGE_REPO)/apicurio/apicurio-registry-tenant-manager-api:$(IMAGE_TAG)
+	docker push $(IMAGE_REPO)/riprasad/apicurio-registry-tenant-manager-api:$(IMAGE_TAG)
 
 .PHONY: build-all-images ## Builds all the Images. Variables available for override [IMAGE_REPO, IMAGE_TAG]
 build-all-images: build-mem-image build-sql-image build-kafkasql-image
