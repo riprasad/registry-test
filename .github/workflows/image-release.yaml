@@ -22,7 +22,7 @@ jobs:
     steps:
           
       - name: Login to Quay.io Registry
-        run: docker login -u "${{ secrets.QUAY_PASSWORD }}" -p "${{ secrets.QUAY_USERNAME }}" quay.io
+        run: docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}" quay.io
     
 
       - name: Fetch required Details
@@ -64,7 +64,7 @@ jobs:
         run: docker images
           
       - name: Login to Quay.io Registry
-        run: docker login -u "${{ secrets.QUAY_PASSWORD }}" -p "${{ secrets.QUAY_USERNAME }}" quay.io
+        run: docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}" quay.io
           
       - name: Push The Images To Quay.io 
         run: cd registry && ./.github/scripts/push-images.sh ${BRANCH} quay.io release ${RELEASE_VERSION}
